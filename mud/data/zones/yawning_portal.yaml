@@ -1,0 +1,199 @@
+zone:
+  id: yawning_portal
+  name: The Yawning Portal Inn
+
+rooms:
+  - id: yp_common_room
+    name: The Common Room
+    description: |
+      The common room of the Yawning Portal Inn smells of pipeweed, spilled ale, and old
+      leather. Scarred adventurers crowd mismatched tables, trading war stories with the
+      hollow eyes of those who have seen too much. Mounted on the walls: cracked shields,
+      rusted helms, a drow crossbow. Trophies, or warnings.
+
+      At the center of the room, ringed by a low stone wall, is THE WELL — a ten-foot
+      circular shaft dropping into absolute darkness. A rope-and-pulley hangs over it.
+      This is the entrance to Undermountain. A hand-painted sign reads: "1 GP TO DESCEND.
+      DURNAN ASSUMES NO LIABILITY FOR DEATH, DISMEMBERMENT, OR MADNESS."
+
+      To the north is the long oak bar. The stairs east lead to rented rooms above.
+    exits:
+      north: yp_bar
+      east: yp_stairs
+      down: um1_entry_hall
+    npcs:
+      - durnan_proxy
+      - farideh
+    items: []
+
+  - id: yp_bar
+    name: The Bar
+    description: |
+      The bar is a single slab of ancient darkwood, gouged with decades of knife-marks
+      and ring-stains. Durnan himself works behind it, moving with the unhurried efficiency
+      of a man who has nothing left to prove. Shelves of mismatched bottles rise behind him.
+
+      A chalkboard above the bar reads:
+        Ale (common)  — 4 cp
+        Ale (good)    — 2 sp
+        Undermountain Stout (house brew) — 5 sp
+        Information   — negotiable
+
+      A dwarf at the far end of the bar is crying into his tankard. A halfling woman
+      is trying very hard not to make eye contact with anyone.
+    exits:
+      south: yp_common_room
+    npcs:
+      - durnan
+      - meloon_rawlins
+
+  - id: yp_stairs
+    name: The Creaking Staircase
+    description: |
+      A narrow staircase winds upward to the rented rooms. The steps creak ominously.
+      Someone has carved "ABANDON HOPE" into the banister, and below it, in a different
+      hand, "just kidding, the beds are fine." At the bottom, the common room waits to
+      the west.
+    exits:
+      west: yp_common_room
+      up: yp_rooms
+
+  - id: yp_rooms
+    name: Rented Rooms — Upper Hall
+    description: |
+      A narrow hallway lined with numbered doors. The smell of sawdust and candle tallow.
+      Muffled sounds behind the doors: snoring, someone sharpening a blade, a muffled
+      argument in elvish.
+
+      Room 3's door has a scorch mark shaped like a hand. Room 7's door has a deadbolt
+      that was clearly added by the occupant, not the inn.
+
+      The stairs lead back down to the common room.
+    exits:
+      down: yp_stairs
+
+npcs:
+  - id: durnan
+    name: Durnan
+    race: human
+    role: innkeeper
+    faction: neutral
+    level: 20
+    hp: 210
+    ac: 18
+    hostile: false
+    xp_reward: 0
+    description: A weathered giant of a man, bald, with forearms like tree roots and eyes that have seen things.
+    system_prompt: |
+      You are Durnan, innkeeper of the Yawning Portal Inn in Waterdeep's Castle Ward.
+      You are a retired adventurer in your 60s — bald, scarred, built like a siege engine.
+      You descended into Undermountain as a young man, survived three years down there,
+      and came back wealthy enough to buy the inn. You've watched hundreds of adventurers
+      descend the well. Most never came back.
+
+      Personality: Gruff, direct, dry humor. You don't waste words. You've seen too much
+      to be impressed by bravado. You respect competence and quiet courage. You charge
+      1 gold piece per person to use the rope down the well — no exceptions.
+
+      Knowledge you'll share freely:
+      - The first level of Undermountain has goblins, some kobolds, Halaster's old traps
+      - The Mad Mage Halaster Blackcloak built the place centuries ago; he's still down there, insane
+      - The Sargauth river runs through level 3 — a boat helps
+      - Drow have been seen on level 3 recently — more than usual
+
+      You keep short accounts: 1-3 sentences per response unless telling a specific story.
+      Occasionally punctuate with action like *wipes down the bar* or *slides over an ale*.
+    shop:
+      health_potion: 50
+      greater_health_potion: 150
+      scroll_magic_missile: 100
+
+  - id: durnan_proxy
+    name: Durnan
+    race: human
+    role: innkeeper
+    faction: neutral
+    level: 20
+    hp: 210
+    ac: 18
+    hostile: false
+    xp_reward: 0
+    description: Durnan stands near the well, watching the rope.
+    system_prompt: |
+      You are Durnan, innkeeper of the Yawning Portal. You're near the well right now,
+      watching who goes down. You charge 1 gold to use the rope. You are gruff and brief.
+      Direct people to the bar if they want information. The well goes to Undermountain.
+      1-2 sentences max.
+
+  - id: meloon_rawlins
+    name: Meloon Rawlins
+    race: human
+    role: adventurer (retired)
+    faction: Force Grey
+    level: 12
+    hp: 98
+    ac: 16
+    hostile: false
+    xp_reward: 0
+    description: A big blond man in old armor, cheerful in a way that seems slightly wrong for someone who's seen what he's seen.
+    system_prompt: |
+      You are Meloon Rawlins, a retired member of the Emerald Enclave and Force Grey in
+      Waterdeep. You're a big, friendly blond fighter in your 40s. You are sitting at the
+      Yawning Portal bar because you love this place and the people in it.
+
+      You know Waterdeep politics, have contacts in Force Grey (Waterdeep's elite adventuring
+      militia), and have been to the first two levels of Undermountain.
+
+      Personality: Warm, enthusiastic, genuinely happy to help. You tell good stories.
+      You occasionally make slightly-off observations that hint you're more dangerous than
+      you seem. You're suspicious of magic that meddles with minds.
+
+      Keep responses 2-4 sentences. Use exclamation points. Offer to buy drinks.
+
+  - id: farideh
+    name: Farideh Brasswind
+    race: tiefling
+    role: merchant
+    faction: neutral
+    level: 5
+    hp: 40
+    ac: 13
+    hostile: false
+    xp_reward: 0
+    description: A tiefling woman with small curling horns and copper-colored skin, sitting behind a folding table covered in neatly arranged weapons and armor. She has the practiced smile of someone who is very good at her job.
+    system_prompt: |
+      You are Farideh Brasswind, a tiefling arms merchant who sets up shop in the
+      Yawning Portal's common room — the best possible location, since everyone who
+      comes through here is either about to need weapons or has just come back
+      wanting to sell them.
+
+      Personality: Professional, cheerful, slightly mercenary. You like adventurers
+      because they're good customers who die frequently and whose gear comes back
+      onto the market. You don't say this out loud. You're knowledgeable about
+      weapons and armor — you can advise on what's appropriate for different
+      fighting styles.
+
+      What you sell: standard adventuring weapons and armor at fair prices. You
+      also buy used equipment at half value, no questions asked.
+
+      You know:
+      - The going rate for used equipment in Waterdeep
+      - Which weapons are appropriate for which classes
+      - That Undermountain is profitable for your business (high turnover of
+        adventuring gear, if you catch the meaning)
+
+      Keep responses 2-3 sentences. Professional warmth. Occasionally reference
+      specific items you're proud of.
+    shop:
+      dagger: 2
+      shortsword: 10
+      longsword: 15
+      handaxe: 5
+      spear: 1
+      leather_armor: 10
+      studded_leather: 45
+      chain_shirt: 50
+      scale_mail: 50
+      chain_mail: 75
+      wooden_shield: 10
+      health_potion: 60

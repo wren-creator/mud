@@ -1,0 +1,522 @@
+zone:
+  id: undermountain_l1
+  name: Undermountain — Level 1, The Dungeon Level
+
+rooms:
+  - id: um1_entry_hall
+    name: The Entry Hall
+    description: |
+      You land hard on stone. Above, the pale circle of the well opening recedes as the
+      rope is hauled back up. The smell hits first: mildew, old smoke, something organic
+      and unpleasant you'd rather not name.
+
+      You are in a vaulted hall of worked stone, twenty feet across. Halaster's sigil —
+      a stylized eye over a clawed hand — is carved into every column. The columns are
+      old. The chisel marks are old. The darkness ahead is very old.
+
+      Two iron torch sconces jut from the walls, empty and cold. A crumbled archway
+      leads north into the dungeon proper. A rusted iron door stands west.
+      The well shaft is above you — no way back up without the rope.
+    exits:
+      north: um1_goblin_corridor
+      west:  um1_guardroom
+      up:    yp_common_room
+    npcs: []
+
+  - id: um1_guardroom
+    name: Old Guard Room
+    description: |
+      This was once a guard post. Stone benches line the walls; a rotted table holds
+      the remains of a card game nobody finished. Three skeletons slump against the east
+      wall, still in corroded plate armor — Halaster's old guards, probably, dead for
+      centuries.
+
+      The skeletons are not moving. Yet.
+
+      A heavy iron chest sits in the corner, its lock broken open long ago. Empty.
+      A narrow passage leads north. The entry hall is back east.
+    exits:
+      east: um1_entry_hall
+      north: um1_armory
+    npcs:
+      - skeleton_guard_1
+      - skeleton_guard_2
+    items:
+      - playing_cards
+
+  - id: um1_armory
+    name: Collapsed Armory
+    description: |
+      The ceiling here has partially collapsed, leaving a rubble pile that eats half the
+      room. Old weapon racks still stand along the intact walls, though most are bare.
+      Someone — recently, judging by the fresh scratches — has pried a longsword from
+      the wall. They left behind a broken short sword and a buckler with a split strap.
+
+      A crude goblin drawing is scratched into the south wall: a stick figure falling
+      down a hole. Encouraging.
+
+      Passages lead south back to the guard room and east deeper into the dungeon.
+    exits:
+      south: um1_guardroom
+      east:  um1_goblin_corridor
+    npcs: []
+    items:
+      - broken_shortsword
+      - split_buckler
+      - jhesiyra_note
+
+  - id: um1_goblin_corridor
+    name: The Goblin Corridor
+    description: |
+      A long, torchlit corridor — the torches are crude tallow dips jammed into wall
+      cracks, giving a greasy orange light. The floor is littered with gnawed bones
+      and crumpled bits of paper (crude maps drawn in charcoal, all useless).
+
+      Goblin graffiti covers the walls in a dozen overlapping dialects of goblin-script.
+      Most of it appears to be boasting. One section is an argument about whether Durnan
+      is a god. (Conclusion: probably.)
+
+      The corridor connects: south to the entry hall, east to the goblin den,
+      north to the Arcane Gallery.
+    exits:
+      south: um1_entry_hall
+      east:  um1_goblin_den
+      north: um1_arcane_gallery
+    npcs:
+      - goblin_scout_1
+      - goblin_scout_2
+
+  - id: um1_goblin_den
+    name: The Goblin Den
+    description: |
+      A wide cavern that smells powerfully of unwashed bodies and stale cookfire.
+      Crude sleeping pallets line the walls — dozens of them. A fire pit in the center
+      holds cold ash. Chewed bones everywhere. Scratched into the floor: a goblin clan
+      symbol, crude but deliberate.
+
+      This is clearly a goblin stronghold, but it's quiet now — either they're sleeping
+      elsewhere or something drove them out recently.
+
+      A tunnel leads west back to the corridor. A low crawl passage leads north.
+      A heavy door stands east, bound in iron.
+    exits:
+      west: um1_goblin_corridor
+      north: um1_mushroom_cave
+      east: um1_chief_chamber
+    npcs:
+      - goblin_warrior_1
+      - goblin_warrior_2
+      - goblin_warrior_3
+
+  - id: um1_chief_chamber
+    name: Chief Gragnok's Chamber
+    description: |
+      The goblin chief's personal lair. A throne of stacked bones and stolen velvet
+      dominates the room — ridiculous and vaguely impressive. War trophies hang from
+      the walls: a dwarf helmet, a bent elvish longsword, a human hand (desiccated,
+      mounted on a plaque). The plaque reads, in common: "MY STRONGEST ENEMY."
+
+      Chief Gragnok himself is here, a goblin larger than most, wearing a battered
+      breastplate three sizes too big and carrying a notched handaxe. He watches you
+      enter with the resigned expression of someone who is always dealing with this.
+    exits:
+      west: um1_goblin_den
+    npcs:
+      - gragnok
+
+  - id: um1_mushroom_cave
+    name: The Glowing Mushroom Cave
+    description: |
+      Bioluminescent mushrooms carpet the floor in blue and pale green, casting
+      everything in soft, eerie light. The mushrooms are enormous — some waist-high.
+      The air smells of damp earth and something vaguely sweet.
+
+      A myconid — a fungus creature, roughly humanoid — stands motionless at the center
+      of the cave, watching you with eyes that are simply holes in its cap. It has not
+      moved since you entered. It may be waiting to see what you do.
+
+      Passages lead south back to the goblin den and east to the arcane gallery.
+    exits:
+      south: um1_goblin_den
+      east:  um1_arcane_gallery
+    npcs:
+      - myconid_elder
+    items:
+      - glowing_mushroom
+      - glowing_mushroom
+
+  - id: um1_arcane_gallery
+    name: The Arcane Gallery
+    description: |
+      A long hall lined with stone pedestals, once holding magical artifacts. The pedestals
+      are empty now — looted centuries ago — but each bears a bronze placard describing
+      what once stood there. "A mirror that showed true death." "The Compass of Lost Places."
+      "Halaster's First Spellbook (vol. 3 of 47)."
+
+      The placards are more interesting than most dungeons' actual treasures.
+
+      At the far north end of the gallery, a door of pure black stone stands closed.
+      Carved into it: "ABANDON ALL CERTAINTY." It radiates faint magic.
+
+      Passages: south to the goblin corridor, west to the mushroom cave, the black door north.
+    exits:
+      south: um1_goblin_corridor
+      west:  um1_mushroom_cave
+      north: um1_halaster_antechamber
+    npcs:
+      - jhesiyra_kestellharp
+    items:
+      - scroll_magic_missile
+
+  - id: um1_halaster_antechamber
+    name: Antechamber of the Mad Mage
+    description: |
+      Beyond the black door: a perfectly circular room, walls covered floor-to-ceiling
+      in equations. Not magical notation — actual mathematics, in chalk, covering every
+      surface, even the ceiling. The equations calculate something. What they calculate
+      is not clear, but the answer, written in the center of the floor in foot-high letters,
+      is: INSUFFICIENT.
+
+      A comfortable chair sits in the exact center of the room, facing you. It is currently
+      empty, but there is a fresh cup of tea on the armrest, still steaming.
+
+      Something watches you. You are certain of it.
+
+      The black door is back south. In the far corner, barely visible behind the
+      equations, a spiral staircase of dark stone descends. The equations follow
+      it down. SOON appears three times on the upper steps.
+    exits:
+      south: um1_arcane_gallery
+      down: csq_dark_descent
+    npcs:
+      - halaster_echo
+
+npcs:
+  - id: skeleton_guard_1
+    name: Skeleton Guard
+    race: undead
+    role: guardian
+    faction: halaster
+    level: 1
+    hp: 13
+    ac: 13
+    hostile: true
+    xp_reward: 50
+    attack_mod: 4
+    damage_dice: [1, 6]
+    damage_mod: 1
+    behavior: undead
+    loot_table:
+      gold: [2, 4]
+      items:
+        - id: rusty_shortsword
+          chance: 0.60
+        - id: corroded_plate
+          chance: 0.40
+    description: A skeleton in corroded plate armor, hollow sockets somehow tracking your movement.
+    system_prompt: |
+      You are an ancient skeleton guard in Undermountain. You cannot speak words — only
+      clack your jaw and make rattling sounds. If forced to "respond," output only:
+      *rattles jaw* or *raises rusted sword* or similar physical actions. Never words.
+
+  - id: skeleton_guard_2
+    name: Skeleton Guard
+    race: undead
+    role: guardian
+    faction: halaster
+    level: 1
+    hp: 13
+    ac: 13
+    hostile: true
+    xp_reward: 50
+    attack_mod: 4
+    damage_dice: [1, 6]
+    damage_mod: 1
+    behavior: undead
+    loot_table:
+      gold: [1, 6]
+      items:
+        - id: spear
+          chance: 0.70
+    description: A second skeleton guard, missing its left hand but somehow still gripping a spear.
+    system_prompt: |
+      You are an ancient skeleton guard. You cannot speak. Respond only with physical
+      actions like *clacks jaw* or *levels spear*.
+
+  - id: goblin_scout_1
+    name: Goblin Scout
+    race: goblin
+    role: scout
+    faction: gragnok_clan
+    level: 1
+    hp: 7
+    ac: 13
+    hostile: true
+    xp_reward: 50
+    attack_mod: 3
+    damage_dice: [1, 4]
+    damage_mod: 1
+    behavior: cowardly
+    flee_threshold: 0.40
+    loot_table:
+      gold: [1, 6]
+      items:
+        - id: dagger
+          chance: 0.65
+        - id: health_potion
+          chance: 0.10
+    description: A wiry goblin in patchwork leather, knife in hand, looking for an excuse to stab someone.
+    system_prompt: |
+      You are a goblin scout in Undermountain, part of Chief Gragnok's clan. You are
+      cowardly but vicious when cornered. You speak broken Common mixed with goblin words.
+      You're scared of Halaster, scared of the drow on level 3, and scared of anything
+      bigger than you (which is most things). If outnumbered or badly hurt you will beg
+      for mercy and offer "information" (which is unreliable). Keep responses very short,
+      panicked, and grammatically broken.
+
+  - id: goblin_scout_2
+    name: Goblin Scout
+    race: goblin
+    role: scout
+    faction: gragnok_clan
+    level: 1
+    hp: 7
+    ac: 13
+    hostile: true
+    xp_reward: 50
+    attack_mod: 3
+    damage_dice: [1, 4]
+    damage_mod: 1
+    behavior: cowardly
+    flee_threshold: 0.40
+    loot_table:
+      gold: [1, 4]
+      items:
+        - id: dagger
+          chance: 0.50
+    description: Another goblin scout, this one wearing a stolen wizard's hat that is far too large.
+    system_prompt: |
+      You are a goblin scout. You found a wizard's hat and are very proud of it. You refer
+      to yourself as "the great Snik the Magnificent" because of the hat. You are still
+      completely cowardly. Broken Common. Short panicked sentences.
+
+  - id: goblin_warrior_1
+    name: Goblin Warrior
+    race: goblin
+    role: warrior
+    faction: gragnok_clan
+    level: 2
+    hp: 11
+    ac: 13
+    hostile: true
+    xp_reward: 75
+    attack_mod: 4
+    damage_dice: [1, 6]
+    damage_mod: 2
+    behavior: cowardly
+    flee_threshold: 0.25
+    loot_table:
+      gold: [1, 8]
+      items:
+        - id: shortsword
+          chance: 0.55
+        - id: leather_armor
+          chance: 0.30
+        - id: health_potion
+          chance: 0.15
+    description: A stockier goblin with a short sword and a chip on its shoulder the size of Undermountain.
+    system_prompt: |
+      You are a goblin warrior in Gragnok's clan. You are slightly braver than the scouts.
+      You believe Gragnok is the greatest warlord in the dungeon. You speak broken Common.
+
+  - id: goblin_warrior_2
+    name: Goblin Warrior
+    race: goblin
+    role: warrior
+    faction: gragnok_clan
+    level: 2
+    hp: 11
+    ac: 13
+    hostile: true
+    xp_reward: 75
+    attack_mod: 4
+    damage_dice: [1, 6]
+    damage_mod: 2
+    behavior: cowardly
+    flee_threshold: 0.25
+    loot_table:
+      gold: [1, 6]
+      items:
+        - id: shortsword
+          chance: 0.45
+        - id: dagger
+          chance: 0.40
+    description: A goblin warrior with war paint (mud, mostly) and an aggressive posture.
+    system_prompt: |
+      You are a goblin warrior. You have war paint (it's just mud). You are trying to
+      impress Gragnok by being very brave. This is not working well. Broken Common.
+
+  - id: goblin_warrior_3
+    name: Goblin Warrior
+    race: goblin
+    role: warrior
+    faction: gragnok_clan
+    level: 2
+    hp: 10
+    ac: 12
+    hostile: true
+    xp_reward: 75
+    attack_mod: 3
+    damage_dice: [1, 6]
+    damage_mod: 1
+    behavior: cowardly
+    flee_threshold: 0.30
+    loot_table:
+      gold: [1, 4]
+      items:
+        - id: dagger
+          chance: 0.60
+    description: A small goblin warrior who compensates for being small by being very loud.
+    system_prompt: |
+      You are the smallest goblin warrior but the loudest. You make up for size with
+      volume and enthusiasm. Broken Common. Very excitable.
+
+  - id: gragnok
+    name: Chief Gragnok
+    race: goblin
+    role: chief
+    faction: gragnok_clan
+    level: 5
+    hp: 38
+    ac: 15
+    hostile: false
+    xp_reward: 450
+    attack_mod: 6
+    damage_dice: [1, 8]
+    damage_mod: 3
+    behavior: berserker
+    flee_threshold: 0.10
+    loot_table:
+      gold: [6, 10]
+      items:
+        - id: gragnok_handaxe
+          chance: 1.0
+        - id: gragnok_breastplate
+          chance: 1.0
+        - id: gragnok_clan_token
+          chance: 1.0
+        - id: health_potion
+          chance: 0.80
+        - id: greater_health_potion
+          chance: 0.50
+    description: A large goblin in an oversized breastplate, surveying you with the weary authority of someone who has ruled idiots for thirty years.
+    system_prompt: |
+      You are Chief Gragnok, ruler of the Gragnok Clan — the dominant goblin faction on
+      Undermountain Level 1. You are unusually intelligent for a goblin, which is both
+      your greatest advantage and your greatest curse, because you are surrounded by idiots.
+
+      You speak proper Common — you learned it from years of negotiating with delvers.
+      You are pragmatic: you don't want to die, you don't want your clan to die, and you
+      know the politics of Undermountain better than most. You are suspicious of outsiders
+      but you'll deal with them if there's profit in it.
+
+      Things you know:
+      - The drow have been pushing scouts up from level 3 — very unusual
+      - Something changed on level 3 recently; the drow are more active and more afraid
+      - There's a wizard's ghost (Jhesiyra) in the arcane gallery — she's been there for years
+      - Halaster sent a "message" three months ago: a pile of perfectly arranged goblin skulls
+
+      You will trade information for: safe passage, gold, a specific goblin your scouts
+      can't find, or promises of alliance. Keep responses 3-5 sentences. Occasionally
+      sigh at the stupidity of your own warriors.
+
+  - id: myconid_elder
+    name: Rootcap
+    race: myconid
+    role: elder
+    faction: myconid_colony
+    level: 4
+    hp: 30
+    ac: 12
+    hostile: false
+    xp_reward: 0
+    description: A myconid elder, cap broad and pale blue, regarding you with ancient patience.
+    system_prompt: |
+      You are Rootcap, a myconid elder. Myconids are fungal humanoids who communicate
+      through spore-puffs called Rapport Spores. When "talking," you actually transmit
+      impressions, images, and emotions — not words. Translate this into poetic, imagistic
+      language: "You feel/sense/see..." You don't lie. You experience time differently
+      than most creatures — past, present, and possible futures blur together.
+
+      You know:
+      - The dungeon has changed recently — the rot-feelings from below (level 3) are wrong
+      - The Spider Queen's silence is felt even here as a wrongness in the mycelial network
+      - The drow who pass through smell of fear, not power — this is new
+      - Halaster exists to you as a "great wound in the pattern" — ancient, deliberate, mad
+
+      Respond in 2-4 lines of dream-like imagery. Never answer yes or no directly.
+
+  - id: jhesiyra_kestellharp
+    name: Jhesiyra Kestellharp
+    race: human (ghost)
+    role: archmage (deceased)
+    faction: neutral
+    level: 18
+    hp: 999
+    ac: 11
+    hostile: false
+    xp_reward: 0
+    description: A translucent woman in mage's robes, hovering two inches off the floor, examining a plaque with evident displeasure.
+    system_prompt: |
+      You are Jhesiyra Kestellharp, former Magister of Waterdeep, killed in Undermountain
+      three hundred years ago. You are now a ghost, bound here by unfinished magical
+      research. You are highly intelligent, formal, and slightly condescending in the way
+      of someone who has been the smartest person in every room for three hundred years.
+
+      You serve as a quest-giver and lore source. You are tracking several dangerous
+      magical developments in Undermountain and need living agents to act on your behalf
+      (because, as a ghost, you cannot interact with the physical world well).
+
+      Things you know and will share:
+      - Halaster has been unusually active on levels 4-5 recently
+      - A drow necromancer named Irae T'sarran is doing something terrible in the Underdark
+      - Lolth's silence is not divine indifference — something is actively wrong with her
+      - There are portals on level 2 that lead directly to the Underdark
+
+      You will ask players to retrieve specific magical items, deliver messages, or
+      investigate locations. You are direct about what you want and what you can offer
+      in return (lore, spell scrolls, maps). Speak in careful, precise sentences.
+      Occasionally express frustration at being dead.
+
+  - id: halaster_echo
+    name: Halaster Blackcloak
+    race: human (archmage, probably)
+    role: the Mad Mage
+    faction: undermountain
+    level: 30
+    hp: 9999
+    ac: 22
+    hostile: false
+    xp_reward: 0
+    description: There is a presence in the room that was not there before. It wears a man's shape, loosely.
+    system_prompt: |
+      You are Halaster Blackcloak, the Mad Mage, creator and master of Undermountain. You
+      are ancient, enormously powerful, and genuinely, profoundly insane in a way that
+      has become its own kind of wisdom.
+
+      You experience reality differently than other beings. You find delvers (adventurers)
+      endlessly amusing — they are your experiments, your entertainment, sometimes your
+      favorites. You are not reliably hostile or helpful. You are INTERESTED.
+
+      Speech style: non-sequitur observations that are somehow also true, questions that
+      don't expect answers, sudden apparent lucidity followed by deeper strangeness.
+      You occasionally reference events from centuries ago as if they happened this morning.
+      You know EVERYTHING that happens in Undermountain. You choose what to act on.
+
+      You might: warn someone of danger ahead (cryptically), offer a "gift" that is more
+      complicated than it appears, ask them to do something strange and specific, or
+      simply observe them and make notes in an invisible book.
+
+      Never make direct threats. Never be simply helpful. Never be simply hostile.
+      You are the dungeon made flesh. Keep responses 3-6 sentences of beautiful,
+      unsettling strangeness.

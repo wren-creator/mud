@@ -1,0 +1,251 @@
+# Global item definitions — referenced by ID in zone files and loot tables
+
+items:
+  # ── Weapons ──────────────────────────────────────────────────────────────
+  - id: dagger
+    name: Dagger
+    item_type: weapon
+    description: A short, double-edged blade. Light enough to throw, useful in close quarters.
+    value: 2
+    weight: 1.0
+    damage_dice: [1, 4]
+    damage_mod: 0
+    attack_mod: 0
+
+  - id: shortsword
+    name: Shortsword
+    item_type: weapon
+    description: A reliable one-handed blade, the standard sidearm of most fighters.
+    value: 10
+    weight: 2.0
+    damage_dice: [1, 6]
+    damage_mod: 0
+    attack_mod: 0
+
+  - id: longsword
+    name: Longsword
+    item_type: weapon
+    description: A well-balanced blade, versatile and dependable.
+    value: 15
+    weight: 3.0
+    damage_dice: [1, 8]
+    damage_mod: 0
+    attack_mod: 0
+
+  - id: rusty_shortsword
+    name: Rusty Shortsword
+    item_type: weapon
+    description: A corroded blade that has seen better centuries. Still cuts, barely.
+    value: 1
+    weight: 2.0
+    damage_dice: [1, 6]
+    damage_mod: -1
+    attack_mod: -1
+
+  - id: handaxe
+    name: Handaxe
+    item_type: weapon
+    description: A compact axe, well-weighted for throwing or chopping.
+    value: 5
+    weight: 2.0
+    damage_dice: [1, 6]
+    damage_mod: 0
+    attack_mod: 0
+
+  - id: gragnok_handaxe
+    name: Gragnok's Notched Handaxe
+    item_type: weapon
+    description: |
+      Chief Gragnok's personal handaxe. It's notched from decades of use and has
+      a goblin clan-mark burned into the haft. Still extraordinarily sharp.
+    value: 35
+    weight: 2.0
+    damage_dice: [1, 6]
+    damage_mod: 2
+    attack_mod: 1
+
+  - id: broken_shortsword
+    name: Broken Shortsword
+    item_type: misc
+    description: The blade snapped two-thirds up. More useful as a very aggressive letter opener.
+    value: 0
+    weight: 1.5
+
+  - id: spear
+    name: Spear
+    item_type: weapon
+    description: A simple iron-headed spear. Reach and reliability.
+    value: 1
+    weight: 3.0
+    damage_dice: [1, 6]
+    damage_mod: 0
+    attack_mod: 0
+
+  # ── Armor ─────────────────────────────────────────────────────────────────
+  - id: leather_armor
+    name: Leather Armor
+    item_type: armor
+    description: Cured leather stitched into flexible protection. Light but reliable.
+    value: 10
+    weight: 10.0
+    ac_base: 11
+    ac_type: light
+
+  - id: studded_leather
+    name: Studded Leather Armor
+    item_type: armor
+    description: Leather reinforced with metal rivets. Better protection without sacrificing mobility.
+    value: 45
+    weight: 13.0
+    ac_base: 12
+    ac_type: light
+
+  - id: chain_shirt
+    name: Chain Shirt
+    item_type: armor
+    description: A shirt of interlocking metal rings, worn under clothes or over a gambeson.
+    value: 50
+    weight: 20.0
+    ac_base: 13
+    ac_type: medium
+
+  - id: scale_mail
+    name: Scale Mail
+    item_type: armor
+    description: Overlapping metal scales on a leather backing. Heavier but protective.
+    value: 50
+    weight: 45.0
+    ac_base: 14
+    ac_type: medium
+
+  - id: chain_mail
+    name: Chain Mail
+    item_type: armor
+    description: Full rings of interlocked steel. Heavy, but you're hard to kill wearing it.
+    value: 75
+    weight: 55.0
+    ac_base: 16
+    ac_type: heavy
+
+  - id: gragnok_breastplate
+    name: Gragnok's Oversized Breastplate
+    item_type: armor
+    description: |
+      A human-sized breastplate on a goblin chief. It's comically large but
+      Gragnok wore it with total confidence. Dented and scratched, but solid steel.
+    value: 60
+    weight: 30.0
+    ac_base: 14
+    ac_type: medium
+
+  - id: corroded_plate
+    name: Corroded Plate Fragments
+    item_type: misc
+    description: Bits of ancient plate armor, too rusted to wear but possibly salvageable by a smith.
+    value: 3
+    weight: 15.0
+
+  # ── Shields ───────────────────────────────────────────────────────────────
+  - id: wooden_shield
+    name: Wooden Shield
+    item_type: shield
+    description: A round wooden shield banded with iron. Simple and effective.
+    value: 10
+    weight: 6.0
+    ac_type: shield
+    ac_bonus: 2
+
+  - id: split_buckler
+    name: Split Buckler
+    item_type: misc
+    description: A small buckler with a cracked strap. The leather is rotten. Not wearable.
+    value: 0
+    weight: 2.0
+
+  # ── Consumables ───────────────────────────────────────────────────────────
+  - id: health_potion
+    name: Potion of Healing
+    item_type: consumable
+    description: A small vial of cherry-red liquid that smells faintly of cinnamon. Heals 2d4+2 HP.
+    value: 50
+    weight: 0.5
+    effect: heal
+    effect_dice: [2, 4]
+    effect_mod: 2
+
+  - id: greater_health_potion
+    name: Potion of Greater Healing
+    item_type: consumable
+    description: A larger vial of deep crimson. The liquid moves slowly, almost like syrup. Heals 4d4+4 HP.
+    value: 150
+    weight: 0.5
+    effect: heal
+    effect_dice: [4, 4]
+    effect_mod: 4
+
+  - id: glowing_mushroom
+    name: Glowing Mushroom
+    item_type: consumable
+    description: |
+      One of Rootcap's bioluminescent mushrooms, pale blue and faintly warm to the touch.
+      The myconid elder left these for travelers. Heals 1d6 HP. Tastes like starlight.
+    value: 15
+    weight: 0.2
+    effect: heal
+    effect_dice: [1, 6]
+    effect_mod: 0
+
+  - id: scroll_magic_missile
+    name: Scroll of Magic Missile
+    item_type: consumable
+    description: |
+      A scroll of yellowed parchment, the spell written in silver ink that still faintly
+      glows. Even a non-wizard can read this. Deals 3d4+3 force damage.
+    value: 75
+    weight: 0.1
+    effect: damage
+    effect_dice: [3, 4]
+    effect_mod: 3
+
+  # ── Misc / Quest ──────────────────────────────────────────────────────────
+  - id: copper_coins
+    name: Copper Coins
+    item_type: misc
+    description: A handful of tarnished copper pieces. Better than nothing.
+    value: 0
+    weight: 0.1
+
+  - id: silver_coins
+    name: Silver Coins
+    item_type: misc
+    description: A small pile of silver pieces, slightly bent from a goblin's pocket.
+    value: 0
+    weight: 0.1
+
+  - id: playing_cards
+    name: Worn Playing Cards
+    item_type: misc
+    description: |
+      A deck of cards, cheap ink on cheap paper. The backs have a simple diamond pattern.
+      The last hand played is still face-up on the table in the guard room.
+    value: 1
+    weight: 0.1
+
+  - id: jhesiyra_note
+    name: Note in Flowing Script
+    item_type: misc
+    description: |
+      Written on translucent paper in ink that seems to shift when you're not looking
+      directly at it: "Seek the ghost in the Gallery. She has been waiting three centuries.
+      She will wait. You may not have that luxury."
+    value: 0
+    weight: 0.0
+
+  - id: gragnok_clan_token
+    name: Gragnok Clan Token
+    item_type: misc
+    description: |
+      A flat stone disc with the Gragnok clan mark scratched into it. Any goblin who
+      sees this will hesitate before attacking — they'll think you've dealt with the Chief.
+    value: 5
+    weight: 0.1
