@@ -101,7 +101,10 @@ class CommandProcessor:
         npcs = [self.world.get_npc(nid) for nid in room.npc_ids if self.world.get_npc(nid)]
         if npcs:
             for npc in npcs:
-                await self.writeln(f"\033[1;32m{npc.name}\033[0m is here.")
+                if npc.is_alive():
+                    await self.writeln(f"\033[1;32m{npc.name}\033[0m is here.")
+                else:
+                    await self.writeln(f"\033[2mThe corpse of {npc.name} lies here.\033[0m")
 
         # Other players in room
         others = [
@@ -180,7 +183,9 @@ class CommandProcessor:
         room = self.world.get_room(self.player.current_room_id)
         npc = next(
             (self.world.get_npc(nid) for nid in room.npc_ids
-             if self.world.get_npc(nid) and self.world.get_npc(nid).name.lower().startswith(target)),
+             if self.world.get_npc(nid)
+             and self.world.get_npc(nid).name.lower().startswith(target)
+             and self.world.get_npc(nid).is_alive()),
             None
         )
         if not npc:
@@ -235,10 +240,11 @@ class CommandProcessor:
 
         # NPC death
         if not npc.is_alive():
-            if npc.id in room.npc_ids:
-                room.npc_ids.remove(npc.id)
+            import time as _time
+            npc.dead_at = _time.monotonic()
             self.player.experience += npc.xp_reward
             await self.writeln(f"\n  {npc.name} is dead. You gain {npc.xp_reward} XP.")
+            await self.writeln(f"  (You can 'loot {npc.name.split()[0].lower()}' to search the corpse.)")
             await self._check_levelup()
             return
 
@@ -381,9 +387,11 @@ class CommandProcessor:
         await self.writeln(result.narrative)
 
         if target.hp <= 0:
-            room.npc_ids.remove(target.id)
+            import time as _time
+            target.dead_at = _time.monotonic()
             self.player.experience += target.xp_reward
             await self.writeln(f"\n  {target.name} is dead. You gain {target.xp_reward} XP.")
+            await self.writeln(f"  (You can 'loot {target.name.split()[0].lower()}' to search the corpse.)")
             await self._check_levelup()
 
     # ── Item commands ───────────────────────────────────────────────────────

@@ -69,4 +69,10 @@ class WorldLoader:
                 npc = NPC.from_dict(npc_data)
                 world.npcs[npc.id] = npc
 
+            # Record which room each NPC spawns in (used for respawning)
+            for room in world.rooms.values():
+                for npc_id in room.npc_ids:
+                    if npc_id in world.npcs and world.npcs[npc_id].spawn_room_id is None:
+                        world.npcs[npc_id].spawn_room_id = room.id
+
         return world

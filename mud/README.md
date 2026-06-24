@@ -1,12 +1,12 @@
 # City of the Spider Queen — Ruins of Undermountain MUD
 
-A text-based multiplayer dungeon (MUD) set in the Forgotten Realms, built with Python and powered by Claude AI for NPC dialogue. Players explore the Yawning Portal Inn, descend into Undermountain, and press deeper toward the City of the Spider Queen.
+A text-based multiplayer dungeon (MUD) set in the Forgotten Realms, built with Python. NPC dialogue is powered locally by Ollama (llama3). Players explore the Yawning Portal Inn, descend into Undermountain, and press deeper toward the City of the Spider Queen.
 
 ## Features
 
 - **12 D&D 5e classes** — Barbarian, Bard, Cleric, Druid, Fighter, Monk, Paladin, Ranger, Rogue, Sorcerer, Warlock, Wizard
 - **D&D 5e combat mechanics** — attack rolls, AC, hit dice, proficiency bonus, spell save DC, weapon damage by class
-- **AI-powered NPCs** — Durnan, Meloon Rawlins, Farideh Brasswind, and dungeon denizens respond dynamically via Claude
+- **AI-powered NPCs** — Durnan, Meloon Rawlins, Farideh Brasswind, and dungeon denizens respond dynamically via Ollama (llama3, running locally)
 - **Multi-zone world** — The Yawning Portal Inn → Undermountain Level 1 → City of the Spider Queen
 - **Economy** — shops, buy/sell, loot tables with dice rolls
 - **Persistent characters** — SQLite-backed save system with password auth
@@ -15,7 +15,7 @@ A text-based multiplayer dungeon (MUD) set in the Forgotten Realms, built with P
 ## Requirements
 
 - Python 3.10+
-- An Anthropic API key (for NPC dialogue)
+- [Ollama](https://ollama.com) running locally with the `llama3` model pulled (`ollama pull llama3`)
 
 ```
 pip install -r requirements.txt
