@@ -5,8 +5,11 @@ A text-based multiplayer dungeon (MUD) set in the Forgotten Realms, built with P
 ## Features
 
 - **12 D&D 5e classes** — Barbarian, Bard, Cleric, Druid, Fighter, Monk, Paladin, Ranger, Rogue, Sorcerer, Warlock, Wizard
+- **10 levels** — XP-gated progression with HP gains, proficiency scaling, and spell slot upgrades on level-up
 - **D&D 5e combat mechanics** — attack rolls, AC, hit dice, proficiency bonus, spell save DC, weapon damage by class
+- **Spell slot system** — cantrips are unlimited; leveled spells (1st–3rd) consume slots per class table; `rest` restores all slots
 - **AI-powered NPCs** — Durnan, Meloon Rawlins, Farideh Brasswind, and dungeon denizens respond dynamically via Ollama (llama3, running locally)
+- **NPC respawning** — enemies return to their spawn room after 5 minutes (configurable per NPC with `respawn_time`)
 - **Multi-zone world** — The Yawning Portal Inn → Undermountain Level 1 → City of the Spider Queen
 - **Economy** — shops, buy/sell, loot tables with dice rolls
 - **Persistent characters** — SQLite-backed save system with password auth
@@ -61,7 +64,7 @@ mud/
 ├── systems/
 │   ├── combat.py     — Player attack and spell resolution
 │   ├── npc_combat.py — NPC counter-attack and flee resolution
-│   ├── npc_ai.py     — Claude-powered NPC dialogue
+│   ├── npc_ai.py     — Ollama-powered NPC dialogue
 │   └── dice_art.py   — ASCII dice display
 ├── world/
 │   ├── loader.py     — Loads YAML zones and item registry
@@ -82,4 +85,4 @@ New players choose a name, password, and one of 12 classes. Stats are rolled usi
 
 ## Death
 
-When a player's HP reaches 0, they wake on the floor of the Yawning Portal — alive, slightly poorer (25% of gold lost), and with Durnan watching them with the expression of a man who has seen this before. Many times.
+When a player's HP reaches 0, they wake on the floor of the Yawning Portal — alive, slightly poorer (25% of gold lost), with HP at half maximum, and all spell slots restored. Durnan is watching them with the expression of a man who has seen this before. Many times.

@@ -53,6 +53,8 @@ Connect via telnet on port 4000. Create a character, pick a class, and find the 
 
 Spell slots refresh on `rest` or when you die and wake at the Yawning Portal.
 
+Killed enemies leave a corpse you can `loot`. They respawn in their room after 5 minutes.
+
 ---
 
 ## Inventory & Equipment
@@ -129,4 +131,4 @@ Spell slots refresh on `rest` or when you die and wake at the Yawning Portal.
 
 ## Death
 
-If your HP hits 0, you wake on the floor of the Yawning Portal Inn. You lose 25% of your gold. Your HP is restored to half maximum. Durnan does not charge you for the ale.
+If your HP hits 0, you wake on the floor of the Yawning Portal Inn. You lose 25% of your gold. Your HP is restored to half maximum and all spell slots are fully restored. Durnan does not charge you for the ale.
