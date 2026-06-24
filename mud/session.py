@@ -90,8 +90,34 @@ class ClientSession:
         await self.write(text + "\r\n")
 
     async def _readline(self) -> str:
-        data = await self.reader.readline()
-        return data.decode("utf-8", errors="replace").strip("\r\n").strip()
+        buf = []
+        while True:
+            b = await self.reader.read(1)
+            if not b:
+                raise asyncio.IncompleteReadError(b"", None)
+            ch = b[0]
+
+            if ch == 255:  # IAC — skip the 2-byte command that follows
+                await self.reader.read(2)
+                continue
+            if ch == 13:  # CR — end of line; consume optional trailing LF or NUL
+                try:
+                    nxt = await asyncio.wait_for(self.reader.read(1), timeout=0.05)
+                    if nxt and nxt[0] not in (10, 0):
+                        # not LF/NUL — unexpected; discard it
+                        pass
+                except asyncio.TimeoutError:
+                    pass
+                return "".join(buf)
+            if ch == 10:  # LF — end of line
+                return "".join(buf)
+            if ch in (8, 127):  # BS or DEL — backspace
+                if buf:
+                    buf.pop()
+                continue
+            if ch < 32:  # other control chars — ignore
+                continue
+            buf.append(chr(ch))
 
     async def _read_password(self) -> str:
         # Suppress echo for password entry
