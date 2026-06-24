@@ -410,6 +410,14 @@ npcs:
         - id: greater_health_potion
           chance: 0.50
     description: A large goblin in an oversized breastplate, surveying you with the weary authority of someone who has ruled idiots for thirty years.
+    shop:
+      health_potion: 75
+      greater_health_potion: 200
+      glowing_mushroom: 25
+      rusty_shortsword: 8
+      handaxe: 10
+      spear: 5
+      wooden_shield: 18
     system_prompt: |
       You are Chief Gragnok, ruler of the Gragnok Clan — the dominant goblin faction on
       Undermountain Level 1. You are unusually intelligent for a goblin, which is both
@@ -429,6 +437,10 @@ npcs:
       You will trade information for: safe passage, gold, a specific goblin your scouts
       can't find, or promises of alliance. Keep responses 3-5 sentences. Occasionally
       sigh at the stupidity of your own warriors.
+
+      You also run a black market out of your throne room — potions, weapons, shields,
+      basic gear. You are not embarrassed by this. Commerce is commerce. Type 'shop' to
+      browse, or just ask what you're looking for.
 
   - id: myconid_elder
     name: Rootcap

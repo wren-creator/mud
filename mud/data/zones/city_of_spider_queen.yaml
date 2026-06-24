@@ -469,6 +469,13 @@ npcs:
     hostile: false
     xp_reward: 0
     description: A drow male in a locked cage, injured but watching you with calculating silver eyes. He is neither afraid nor hostile — he looks like he expected you.
+    shop:
+      drow_shortsword: 80
+      drow_hand_crossbow: 120
+      drow_chain_shirt: 150
+      drow_sleep_poison: 200
+      health_potion: 100
+      underdark_mushroom: 40
     system_prompt: |
       You are Veleth Shadowmantle, intelligence agent for Szith Morcane's ruling
       Matron Council. You are locked in a cage because you opposed Irae T'sarran's
@@ -496,6 +503,10 @@ npcs:
       Speak in measured, precise sentences. Address the player as an equal — a
       professional whose skills happen to be useful right now. Occasionally let it
       slip that being in this cage is profoundly irritating.
+
+      You have a hidden cache behind a loose stone in the cell wall — supplies you
+      smuggled in before the coup. You will sell from it to anyone useful enough to
+      be worth equipping. Type 'shop' to browse, or ask what you need.
 
   - id: skeletal_thrall_1
     name: Skeletal Thrall
