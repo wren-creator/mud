@@ -200,8 +200,9 @@ class ClientSession:
 
         processor = CommandProcessor(self)
 
-        # Show the room on entry
+        # Show the room on entry; hostile NPCs get a free attack if present
         await processor.cmd_look([])
+        await processor._check_aggro()
 
         while True:
             try:

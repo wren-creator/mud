@@ -27,7 +27,7 @@ class NPCTurnResult:
     npc_called_help: bool = False
 
 
-def npc_take_turn(npc: "NPC", player: "Character") -> NPCTurnResult:
+def npc_take_turn(npc: "NPC", player: "Character", is_aggro: bool = False) -> NPCTurnResult:
     behavior = getattr(npc, "behavior", UNDEAD)
     flee_threshold = getattr(npc, "flee_threshold", 0.25)
     hp_pct = npc.hp / npc.max_hp if npc.max_hp > 0 else 0
@@ -55,7 +55,8 @@ def npc_take_turn(npc: "NPC", player: "Character") -> NPCTurnResult:
     total = d20 + atk_mod
     crit = d20 == 20
 
-    lines = [f"\n  {RED}{npc.name}{RESET} strikes back!"]
+    opener = "attacks you!" if is_aggro else "strikes back!"
+    lines = [f"\n  {RED}{npc.name}{RESET} {opener}"]
     if enraged:
         lines.append(f"  {RED}(ENRAGED — low HP!){RESET}")
 

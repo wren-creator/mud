@@ -157,6 +157,7 @@ class CommandProcessor:
         )
 
         await self.cmd_look([])
+        await self._check_aggro()
 
         from db.database import Database
         Database.save_player(self.player)
@@ -295,6 +296,28 @@ class CommandProcessor:
                 self.player.current_room_id = dest_id
                 await self.cmd_look([])
         elif not self.player.is_alive:
+            await self._handle_player_death()
+
+    async def _check_aggro(self):
+        """Hostile alive NPCs in the current room get a free attack on room entry."""
+        from systems.npc_combat import npc_take_turn
+        room = self.world.get_room(self.player.current_room_id)
+        if not room:
+            return
+        hostiles = [
+            self.world.get_npc(nid) for nid in list(room.npc_ids)
+            if self.world.get_npc(nid)
+            and self.world.get_npc(nid).hostile
+            and self.world.get_npc(nid).is_alive()
+        ]
+        for npc in hostiles:
+            if not self.player.is_alive:
+                break
+            result = npc_take_turn(npc, self.player, is_aggro=True)
+            await self.writeln(result.narrative)
+            if result.npc_fled and npc.id in room.npc_ids:
+                room.npc_ids.remove(npc.id)
+        if not self.player.is_alive:
             await self._handle_player_death()
 
     async def _handle_player_death(self):
