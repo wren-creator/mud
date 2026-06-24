@@ -64,6 +64,7 @@ class CommandProcessor:
             "help":   self.cmd_help,
             "quit":   self.cmd_quit,     "exit": self.cmd_quit,
             "save":   self.cmd_save,
+            "rest":   self.cmd_rest,
         }
         handler = handlers.get(cmd)
         if handler:
@@ -301,6 +302,7 @@ class CommandProcessor:
         gold_lost = self.player.gold // 4
         self.player.gold -= gold_lost
         self.player._hp = max(1, self.player.max_hp // 2)
+        self.player.restore_spell_slots()
         self.player.current_room_id = "yp_common_room"
 
         await self.writeln(f"""
@@ -344,6 +346,7 @@ class CommandProcessor:
         )
         self.player.level = new_level
         self.player._hp = min(self.player.max_hp, self.player._hp + hp_gain)
+        self.player.restore_spell_slots()
         new_prof = self.player.proficiency_bonus
 
         Y = "\033[1;33m"
@@ -369,9 +372,20 @@ class CommandProcessor:
         if len(args) < 2:
             await self.writeln("Usage: cast <spell> at <target>")
             return
-        from systems.combat import resolve_spell
+        from systems.combat import resolve_spell, SPELL_LEVELS
         spell_name = args[0].lower()
         target_name = args[-1].lower() if "at" in args else args[-1].lower()
+
+        spell_level = SPELL_LEVELS.get(spell_name, 1)
+        if spell_level > 0:
+            if not self.player.use_spell_slot(spell_level):
+                ordinals = ["1st", "2nd", "3rd", "4th", "5th"]
+                needed = ordinals[spell_level - 1]
+                await self.writeln(
+                    f"You have no {needed}-level spell slots remaining. "
+                    f"Type 'rest' to recover them."
+                )
+                return
 
         room = self.world.get_room(self.player.current_room_id)
         target = next(
@@ -631,10 +645,20 @@ class CommandProcessor:
             xp_line = f"XP: {p.experience} / {_XP[p.level]}  (next level)"
         else:
             xp_line = f"XP: {p.experience}  (max level)"
+        slot_line = ""
+        if p.is_spellcaster:
+            ordinals = ["1st", "2nd", "3rd", "4th", "5th"]
+            parts = [
+                f"{ordinals[i]}: {cur}/{mx}"
+                for i, (cur, mx) in enumerate(zip(p.spell_slots, p.max_spell_slots))
+                if mx > 0
+            ]
+            slot_line = f"\nSpell slots: {', '.join(parts) if parts else 'none'}"
+
         await self.writeln(f"""
 \033[1;33m{p.name}\033[0m  —  {p.char_class.capitalize()} Level {p.level}
 HP: {p.hp}/{p.max_hp}   AC: {p.ac}   Prof: +{p.proficiency_bonus}
-{xp_line}
+{xp_line}{slot_line}
 
 STR {s.strength:2} ({s.modifier(s.strength):+d})   DEX {s.dexterity:2} ({s.modifier(s.dexterity):+d})   CON {s.constitution:2} ({s.modifier(s.constitution):+d})
 INT {s.intelligence:2} ({s.modifier(s.intelligence):+d})   WIS {s.wisdom:2} ({s.modifier(s.wisdom):+d})   CHA {s.charisma:2} ({s.modifier(s.charisma):+d})
@@ -670,11 +694,23 @@ INT {s.intelligence:2} ({s.modifier(s.intelligence):+d})   WIS {s.wisdom:2} ({s.
   shop / browse       — Browse a merchant's wares
   buy <item>          — Purchase an item from a merchant
   sell <item>         — Sell an item from your inventory (50% value)
-  score / stats       — Show your character sheet
+  score / stats       — Show your character sheet (includes spell slots)
   who                 — List online players
+  rest                — Recover HP and restore all spell slots
   save                — Save your character
   quit                — Save and disconnect
 """)
+
+    async def cmd_rest(self, args: List[str]):
+        self.player.restore_spell_slots()
+        heal = self.player.max_hp // 4
+        self.player.hp = min(self.player.max_hp, self.player.hp + heal)
+        msg = f"You rest. HP +{heal} [{self.player.hp}/{self.player.max_hp}]."
+        if self.player.is_spellcaster:
+            msg += " Spell slots restored."
+        await self.writeln(msg)
+        from db.database import Database
+        Database.save_player(self.player)
 
     async def cmd_save(self, args: List[str]):
         from db.database import Database

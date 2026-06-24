@@ -39,6 +39,7 @@ class Player(Character):
                 "wisdom": s.wisdom,
                 "charisma": s.charisma,
             },
+            "spell_slots": self.spell_slots,
         }
 
     @classmethod
@@ -68,6 +69,9 @@ class Player(Character):
         for slot in ("weapon", "offhand", "armor"):
             item_data = raw_eq.get(slot)
             p.equipment[slot] = Item.from_dict(item_data) if item_data else None
+
+        # Spell slots — fall back to full restore for old saves without this field
+        p.spell_slots = data.get("spell_slots", p.max_spell_slots)
 
         return p
 

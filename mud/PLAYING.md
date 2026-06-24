@@ -35,7 +35,23 @@ Connect via telnet on port 4000. Create a character, pick a class, and find the 
 | `flee` | `run` | Attempt to escape combat (DEX check; failure = opportunity attack) |
 | `cast <spell> at <target>` | — | Cast a spell (spellcasters only) |
 
-**Spells:** `magic missile`, `fire bolt`, `sacred flame`, `poison spray`, `eldritch blast`
+**Cantrips (unlimited):** `firebolt`, `ray of frost`, `shocking grasp`, `sacred flame`, `eldritch blast`
+
+**Leveled spells (consume a slot):**
+
+| Spell | Level | Notes |
+|-------|-------|-------|
+| `magic missile` | 1st | Auto-hits, 3d4+1 force |
+| `burning hands` | 1st | DEX save, 3d6 fire |
+| `cure wounds` | 1st | Self-heal 1d8+mod |
+| `chromatic orb` | 1st | Spell attack, 3d8 |
+| `hex` | 1st | Warlock curse, 1d6 |
+| `inflict wounds` | 1st | Necrotic, 3d10 |
+| `thunderwave` | 2nd | CON save, 2d8 |
+| `fireball` | 3rd | DEX save, 8d6 fire |
+| `lightning bolt` | 3rd | DEX save, 8d6 lightning |
+
+Spell slots refresh on `rest` or when you die and wake at the Yawning Portal.
 
 ---
 
@@ -77,7 +93,8 @@ Connect via telnet on port 4000. Create a character, pick a class, and find the 
 
 | Command | Aliases | Action |
 |---------|---------|--------|
-| `score` | `stats` | Full character sheet (HP, AC, ability scores, XP) |
+| `score` | `stats` | Full character sheet (HP, AC, ability scores, XP, spell slots) |
+| `rest` | — | Short rest: recover 25% HP and restore all spell slots |
 
 ---
 

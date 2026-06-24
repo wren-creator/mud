@@ -29,6 +29,24 @@ SPELLS = {
     "hex":            (1, 6,  None,  None,           "dark hexing energy"),
 }
 
+# Slot level for each spell; 0 = cantrip (unlimited uses)
+SPELL_LEVELS: dict = {
+    "firebolt":       0,
+    "ray of frost":   0,
+    "shocking grasp": 0,
+    "sacred flame":   0,
+    "eldritch blast": 0,
+    "magic missile":  1,
+    "burning hands":  1,
+    "cure wounds":    1,
+    "chromatic orb":  1,
+    "hex":            1,
+    "inflict wounds": 1,
+    "thunderwave":    2,
+    "fireball":       3,
+    "lightning bolt": 3,
+}
+
 
 @dataclass
 class AttackResult:

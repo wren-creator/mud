@@ -42,6 +42,42 @@ HIT_DICE = {
 SPELL_CLASSES = {"wizard", "sorcerer", "warlock", "cleric", "druid", "bard", "paladin", "ranger"}
 FINESSE_CLASSES = {"rogue", "ranger", "monk"}
 
+# Spell slots [1st, 2nd, 3rd, 4th, 5th] indexed by character level (1-9)
+_FULL_SLOTS = [
+    [2, 0, 0, 0, 0],
+    [3, 0, 0, 0, 0],
+    [4, 2, 0, 0, 0],
+    [4, 3, 0, 0, 0],
+    [4, 3, 2, 0, 0],
+    [4, 3, 3, 0, 0],
+    [4, 3, 3, 1, 0],
+    [4, 3, 3, 2, 0],
+    [4, 3, 3, 3, 1],
+]
+_HALF_SLOTS = [
+    [0, 0, 0, 0, 0],
+    [2, 0, 0, 0, 0],
+    [3, 0, 0, 0, 0],
+    [3, 0, 0, 0, 0],
+    [4, 2, 0, 0, 0],
+    [4, 2, 0, 0, 0],
+    [4, 3, 0, 0, 0],
+    [4, 3, 0, 0, 0],
+    [4, 3, 2, 0, 0],
+]
+# Warlock pact magic: 2 slots at their highest pact spell level
+_WARLOCK_SLOTS = [
+    [1, 0, 0, 0, 0],
+    [2, 0, 0, 0, 0],
+    [0, 2, 0, 0, 0],
+    [0, 2, 0, 0, 0],
+    [0, 0, 2, 0, 0],
+    [0, 0, 2, 0, 0],
+    [0, 0, 0, 2, 0],
+    [0, 0, 0, 2, 0],
+    [0, 0, 0, 0, 2],
+]
+
 
 class Character:
     def __init__(self, name: str, char_class: str, stats: Stats, level: int = 1):
@@ -59,6 +95,7 @@ class Character:
         self.gold: int = 0
         self.experience: int = 0
         self.current_room_id: str = ""
+        self.spell_slots: List[int] = self.max_spell_slots
 
     def _calc_max_hp(self) -> int:
         hd = HIT_DICE.get(self.char_class, 8)
@@ -146,6 +183,28 @@ class Character:
         else:
             mod = self.stats.modifier(self.stats.charisma)
         return 8 + self.proficiency_bonus + mod
+
+    @property
+    def max_spell_slots(self) -> List[int]:
+        idx = min(self.level, 9) - 1
+        if self.char_class in {"wizard", "sorcerer", "bard", "cleric", "druid"}:
+            return list(_FULL_SLOTS[idx])
+        if self.char_class in {"paladin", "ranger"}:
+            return list(_HALF_SLOTS[idx])
+        if self.char_class == "warlock":
+            return list(_WARLOCK_SLOTS[idx])
+        return [0, 0, 0, 0, 0]
+
+    def restore_spell_slots(self):
+        self.spell_slots = self.max_spell_slots
+
+    def use_spell_slot(self, level: int) -> bool:
+        """Consume the lowest available slot at or above `level`. Returns False if none."""
+        for i in range(level - 1, len(self.spell_slots)):
+            if self.spell_slots[i] > 0:
+                self.spell_slots[i] -= 1
+                return True
+        return False
 
     @property
     def is_alive(self) -> bool:
