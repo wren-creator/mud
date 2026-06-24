@@ -26,12 +26,16 @@ class NPC:
     loot_table: Dict[str, Any] = field(default_factory=dict)  # {gold:[n,sides], items:[{id,chance}]}
     looted: bool = False
     shop: Dict[str, int] = field(default_factory=dict)  # {item_id: buy_price}
+    buy_rate: float = 0.5                 # fraction of item value paid when player sells
     # rolling conversation context (resets on server restart)
     conversation_history: List[Dict] = field(default_factory=list)
     # Respawn tracking
     dead_at: Optional[float] = None       # monotonic timestamp of death; None if alive
     respawn_time: int = 300               # seconds until respawn; 0 = never
     spawn_room_id: Optional[str] = None   # set by loader from room placement
+    # Roaming
+    roaming: bool = False                 # if True, server moves NPC between adjacent rooms
+    current_room_id: Optional[str] = None # tracked separately for roaming NPCs
 
     def is_alive(self) -> bool:
         return self.hp > 0
@@ -61,5 +65,7 @@ class NPC:
             flee_threshold=data.get("flee_threshold", 0.25),
             loot_table=data.get("loot_table", {}),
             shop=data.get("shop", {}),
+            buy_rate=data.get("buy_rate", 0.5),
             respawn_time=data.get("respawn_time", 300),
+            roaming=data.get("roaming", False),
         )

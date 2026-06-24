@@ -759,8 +759,9 @@ INT {s.intelligence:2} ({s.modifier(s.intelligence):+d})   WIS {s.wisdom:2} ({s.
             if template:
                 lines.append(f"  {template.name:<34}{price:>9} gp")
 
+        buy_pct = int(merchant.buy_rate * 100)
         lines.append(f"  {'─' * W}")
-        lines.append(f"  {D}Merchants buy items at 50% of their value.{R}")
+        lines.append(f"  {D}Merchant buys your items at {buy_pct}% of their value.{R}")
         lines.append(f"  You have {Y}{self.player.gold} gp{R}.")
         await self.writeln("\n".join(lines))
 
@@ -817,7 +818,7 @@ INT {s.intelligence:2} ({s.modifier(s.intelligence):+d})   WIS {s.wisdom:2} ({s.
             await self.writeln(f"You don't have '{query}' in your inventory.")
             return
 
-        sell_price = max(1, item.value // 2)
+        sell_price = max(1, int(item.value * merchant.buy_rate))
         self.player.inventory.remove(item)
         self.player.gold += sell_price
         await self.writeln(

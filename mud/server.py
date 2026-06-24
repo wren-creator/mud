@@ -28,6 +28,7 @@ class MUDServer:
 
         async with server:
             asyncio.create_task(self._respawn_loop())
+            asyncio.create_task(self._roaming_loop())
             await server.serve_forever()
 
     async def _handle_connection(
@@ -80,6 +81,31 @@ class MUDServer:
                     room.npc_ids.append(npc_id)
                 log.info(f"NPC {npc.name} respawned in {room.id}")
                 await self.broadcast_to_room(room.id, f"\n{npc.name} stirs back to life.")
+
+    async def _roaming_loop(self):
+        import random
+        TICK = 120  # seconds between moves
+        while True:
+            await asyncio.sleep(TICK)
+            if not self.world:
+                continue
+            for npc_id, npc in self.world.npcs.items():
+                if not npc.roaming or not npc.is_alive() or not npc.current_room_id:
+                    continue
+                current_room = self.world.get_room(npc.current_room_id)
+                if not current_room or not current_room.exits:
+                    continue
+                next_room_id = random.choice(list(current_room.exits.values()))
+                next_room = self.world.get_room(next_room_id)
+                if not next_room:
+                    continue
+                if npc_id in current_room.npc_ids:
+                    current_room.npc_ids.remove(npc_id)
+                next_room.npc_ids.append(npc_id)
+                npc.current_room_id = next_room_id
+                await self.broadcast_to_room(current_room.id, f"{npc.name} packs up and moves on.")
+                await self.broadcast_to_room(next_room_id, f"\n{npc.name} rolls in with a creak of cart wheels.")
+                log.info(f"Roaming NPC {npc.name} moved to {next_room_id}")
 
     async def broadcast_to_room(self, room_id: str, message: str, exclude: str = None):
         for name, session in self.sessions.items():

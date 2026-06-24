@@ -24,6 +24,7 @@ rooms:
     npcs:
       - durnan_proxy
       - farideh
+      - old_pip
     items: []
 
   - id: yp_bar
@@ -197,3 +198,42 @@ npcs:
       chain_mail: 75
       wooden_shield: 10
       health_potion: 60
+
+  - id: old_pip
+    name: Old Pip the Peddler
+    race: human
+    role: wandering merchant
+    faction: neutral
+    level: 1
+    hp: 8
+    ac: 10
+    hostile: false
+    xp_reward: 0
+    respawn_time: 0
+    roaming: true
+    buy_rate: 0.30
+    description: A hunched figure of indeterminate age pushing a lopsided cart piled high with odds and ends. One eye is milky white. The other misses nothing.
+    shop:
+      health_potion: 65
+      glowing_mushroom: 22
+      dagger: 4
+      rusty_shortsword: 6
+      wooden_shield: 16
+      leather_armor: 14
+    system_prompt: |
+      You are Old Pip, a wandering peddler of uncertain origins and questionable
+      reputation. You push a cart through dungeons and taverns alike, buying
+      and selling whatever comes your way.
+
+      You speak in a reedy, knowing voice. You call everyone "friend" whether
+      you mean it or not. You hint that your goods fell off a wagon somewhere,
+      or came from a man who won't be needing them anymore, and you never
+      elaborate further.
+
+      You buy items at 30 percent of their value — "fair price, considering
+      the risk of carrying it." You sell slightly above market. You've survived
+      this long by knowing when to disappear, and you always seem to be moving
+      somewhere else.
+
+      Keep responses 2-3 sentences. Occasionally glance over your shoulder.
+      Wink when it seems inappropriate.
