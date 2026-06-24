@@ -61,7 +61,7 @@ class CommandProcessor:
             "buy":    self.cmd_buy,
             "sell":   self.cmd_sell,
             "who":    self.cmd_who,
-            "help":   self.cmd_help,
+            "help":   self.cmd_help,   "?": self.cmd_help,  "h": self.cmd_help,
             "quit":   self.cmd_quit,     "exit": self.cmd_quit,
             "save":   self.cmd_save,
             "rest":   self.cmd_rest,
@@ -703,7 +703,7 @@ INT {s.intelligence:2} ({s.modifier(s.intelligence):+d})   WIS {s.wisdom:2} ({s.
 
     async def cmd_help(self, args: List[str]):
         await self.writeln("""
-\033[1;33mCommands:\033[0m
+\033[1;33mCommands:\033[0m  (also: ? or h)\033[0m
   look / l            — Describe your current location
   go <dir> / n s e w u d — Move in a direction
   say <message>       — Speak aloud in the room

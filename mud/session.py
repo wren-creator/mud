@@ -127,10 +127,6 @@ class ClientSession:
     # ─── Main loop ─────────────────────────────────────────────────────────────
 
     async def run(self):
-        # Negotiate telnet options
-        self.writer.write(IAC + WILL + SGA + IAC + DO + SGA)
-        await self.writer.drain()
-
         await self.write(BANNER)
         await self._login_flow()
 
