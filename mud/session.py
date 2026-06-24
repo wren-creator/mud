@@ -100,17 +100,12 @@ class ClientSession:
             if ch == 255:  # IAC — skip the 2-byte command that follows
                 await self.reader.read(2)
                 continue
-            if ch == 13:  # CR — end of line; consume optional trailing LF or NUL
-                try:
-                    nxt = await asyncio.wait_for(self.reader.read(1), timeout=0.05)
-                    if nxt and nxt[0] not in (10, 0):
-                        # not LF/NUL — unexpected; discard it
-                        pass
-                except asyncio.TimeoutError:
-                    pass
+            if ch == 13:  # CR — end of line; leave any trailing LF for next call
                 return "".join(buf)
-            if ch == 10:  # LF — end of line
-                return "".join(buf)
+            if ch == 10:  # LF — line terminator, or trailing \n after \r (skip if empty)
+                if buf:
+                    return "".join(buf)
+                continue  # empty buf means this is a leftover \n from \r\n — skip it
             if ch in (8, 127):  # BS or DEL — backspace
                 if buf:
                     buf.pop()
