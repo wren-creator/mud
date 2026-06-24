@@ -468,6 +468,7 @@ npcs:
     ac: 14
     hostile: false
     xp_reward: 0
+    buy_rate: 0.35
     description: A drow male in a locked cage, injured but watching you with calculating silver eyes. He is neither afraid nor hostile — he looks like he expected you.
     shop:
       drow_shortsword: 80
