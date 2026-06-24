@@ -373,8 +373,13 @@ class CommandProcessor:
             await self.writeln("Usage: cast <spell> at <target>")
             return
         from systems.combat import resolve_spell, SPELL_LEVELS
-        spell_name = args[0].lower()
-        target_name = args[-1].lower() if "at" in args else args[-1].lower()
+        if "at" in args:
+            at_idx = args.index("at")
+            spell_name = " ".join(args[:at_idx]).lower()
+            target_name = " ".join(args[at_idx + 1:]).lower()
+        else:
+            spell_name = " ".join(args[:-1]).lower()
+            target_name = args[-1].lower()
 
         spell_level = SPELL_LEVELS.get(spell_name, 1)
         if spell_level > 0:
