@@ -96,9 +96,18 @@ graphical (eventually 3D) client without rewriting any game logic:
   that room changes, movement, combat, chat, item pickup, NPC respawn/roam.
 - `mud/web/index.html` is a plain, dependency-free web page that connects to
   the feed and renders it live, room description, exits, players/NPCs with HP
-  bars, items on the ground. It's read-only for now; movement and commands
-  still go through the telnet session, this client only proves the state feed
-  works end to end before any 3D rendering is built on top of it.
+  bars, items on the ground.
+- The client can also act: `{"type": "command", "line": "..."}` runs the exact
+  same `CommandProcessor.dispatch()` a telnet player uses, so `go north`,
+  `say ...`, `talk <npc> ...`, `attack <npc>`, and `flee` all behave
+  identically whether they came from telnet or the browser, no separate
+  rules to maintain per client. The web page wraps this behind exit buttons,
+  a Say box, per-NPC Attack buttons, a Flee button, and a raw command box for
+  anything else already implemented on the telnet side. Narrative output
+  (attack rolls, "you say...", NPC replies) is relayed back over the socket
+  as `{"type": "log", "text": "..."}` and rendered with the same ANSI colors
+  telnet shows. Shopping, looting, and spellcasting aren't in the client's UI
+  yet, but work if typed into the raw command box.
 
 To try it: start the server, log in over telnet, then open `mud/web/index.html`
 in a browser, enter the same player name, and hit Connect.

@@ -8,6 +8,31 @@ from aiohttp import web
 log = logging.getLogger(__name__)
 
 
+class _WsCommandSession:
+    """Wraps a real ClientSession so a WS-issued command's own narrative
+    (attack rolls, "you say...", NPC replies, aggro hits) reaches the
+    WebSocket that issued it, on top of the normal telnet output."""
+
+    def __init__(self, session: "ClientSession", ws: web.WebSocketResponse):
+        self._session = session
+        self._ws = ws
+
+    @property
+    def player(self):
+        return self._session.player
+
+    @property
+    def server(self):
+        return self._session.server
+
+    async def writeln(self, text: str = ""):
+        await self._session.writeln(text)
+        try:
+            await self._ws.send_json({"type": "log", "text": text})
+        except ConnectionResetError:
+            pass
+
+
 class MUDServer:
     def __init__(self, host: str = "0.0.0.0", port: int = 4000, ws_port: int = 4001):
         self.host = host
@@ -126,6 +151,12 @@ class MUDServer:
                 continue
             if session.player and session.player.current_room_id == room_id:
                 await session.writeln(message)
+        for name, ws in list(self.ws_clients.items()):
+            if name == exclude:
+                continue
+            session = self.sessions.get(name)
+            if session and session.player and session.player.current_room_id == room_id:
+                await ws.send_json({"type": "log", "text": message})
         await self.push_room_state(room_id)
 
     # ─── WebSocket state feed (3D/web client POC) ─────────────────────────────
@@ -156,7 +187,7 @@ class MUDServer:
                 self.ws_clients[identified_name] = ws
                 await self._send_room_state(ws, candidate.player.current_room_id)
 
-            elif data.get("type") == "move":
+            elif data.get("type") == "command":
                 if not identified_name:
                     await ws.send_json({"type": "error", "message": "identify first"})
                     continue
@@ -164,11 +195,20 @@ class MUDServer:
                 if not session or not session.player:
                     await ws.send_json({"type": "error", "message": "player no longer connected"})
                     continue
-                # Runs the same cmd_go a telnet player would trigger, so exit
-                # validation, aggro checks, and room broadcasts all stay in sync.
+                line = str(data.get("line", "")).strip()
+                if not line:
+                    continue
+                parts = line.split()
+                cmd, args = parts[0].lower(), parts[1:]
+                # Runs the exact same dispatch table a telnet player uses, so
+                # move/say/talk/attack/flee all stay in sync with no separate
+                # rules to maintain for the web client.
                 from commands import CommandProcessor
-                processor = CommandProcessor(session)
-                await processor.cmd_go([str(data.get("direction", ""))])
+                processor = CommandProcessor(_WsCommandSession(session, ws))
+                try:
+                    await processor.dispatch(cmd, args)
+                except SystemExit:
+                    pass  # 'quit' saves and returns; doesn't disconnect the telnet session
 
         if identified_name and self.ws_clients.get(identified_name) is ws:
             del self.ws_clients[identified_name]
