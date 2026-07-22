@@ -156,6 +156,20 @@ class MUDServer:
                 self.ws_clients[identified_name] = ws
                 await self._send_room_state(ws, candidate.player.current_room_id)
 
+            elif data.get("type") == "move":
+                if not identified_name:
+                    await ws.send_json({"type": "error", "message": "identify first"})
+                    continue
+                session = self.sessions.get(identified_name)
+                if not session or not session.player:
+                    await ws.send_json({"type": "error", "message": "player no longer connected"})
+                    continue
+                # Runs the same cmd_go a telnet player would trigger, so exit
+                # validation, aggro checks, and room broadcasts all stay in sync.
+                from commands import CommandProcessor
+                processor = CommandProcessor(session)
+                await processor.cmd_go([str(data.get("direction", ""))])
+
         if identified_name and self.ws_clients.get(identified_name) is ws:
             del self.ws_clients[identified_name]
         return ws

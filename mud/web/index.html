@@ -96,12 +96,23 @@
     margin: 22px 0 8px;
   }
   #exits { display: flex; gap: 6px; flex-wrap: wrap; }
-  .exit-pill {
+  button.exit-pill {
     padding: 4px 10px;
     border: 1px solid var(--border);
     border-radius: 999px;
     font-size: 12px;
+    font-weight: 400;
+    background: var(--panel);
+    color: var(--text);
+    cursor: pointer;
+  }
+  button.exit-pill:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  button.exit-pill:disabled {
     color: var(--dim);
+    cursor: default;
   }
   .entity-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
   .entity {
@@ -158,8 +169,8 @@
 
   <p style="font-size:11px;color:var(--dim);line-height:1.5;margin-top:auto;">
     Proof-of-concept client. Renders whatever room_state the server pushes.
-    Movement/commands aren't wired up here yet, drive those from the telnet
-    session and watch this view update live.
+    Click an exit to move. Other commands (combat, chat, shopping) still go
+    through the telnet session, watch this view update live as you use them.
   </p>
 </div>
 
@@ -232,8 +243,13 @@
     const exitsEl = document.getElementById('exits');
     const exitEntries = Object.entries(state.room.exits || {});
     exitsEl.innerHTML = exitEntries.length
-      ? exitEntries.map(([dir, roomId]) => `<span class="exit-pill">${dir} → ${roomId}</span>`).join('')
+      ? exitEntries.map(([dir, roomId]) =>
+          `<button class="exit-pill" data-dir="${dir}">${dir} → ${roomId}</button>`
+        ).join('')
       : '<span class="empty">none</span>';
+    exitsEl.querySelectorAll('.exit-pill').forEach(btn => {
+      btn.addEventListener('click', () => sendMove(btn.dataset.dir));
+    });
 
     const playersEl = document.getElementById('players');
     playersEl.innerHTML = state.players.length ? state.players.map(p => `
@@ -260,6 +276,11 @@
         <span class="meta">${i.item_type}</span>
       </li>
     `).join('') : '<li class="empty">nothing here</li>';
+  }
+
+  function sendMove(direction) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ type: 'move', direction }));
   }
 
   connectBtn.addEventListener('click', () => {
