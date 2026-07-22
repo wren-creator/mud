@@ -8,6 +8,19 @@ if TYPE_CHECKING:
     from session import ClientSession
 
 
+def _shop_wares(npc) -> List[dict]:
+    """Public wares list for a merchant NPC (same prices `shop` already shows anyone)."""
+    if not npc.shop:
+        return []
+    from world.loader import ITEM_REGISTRY
+    wares = []
+    for item_id, price in npc.shop.items():
+        template = ITEM_REGISTRY.get(item_id)
+        if template:
+            wares.append({"item_id": item_id, "name": template.name, "price": price})
+    return wares
+
+
 @dataclass
 class Room:
     id: str
@@ -54,6 +67,7 @@ class Room:
                 "hp": npc.hp,
                 "max_hp": npc.max_hp,
                 "alive": npc.is_alive(),
+                "shop": _shop_wares(npc),
                 "slot": i,
             })
 

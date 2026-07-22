@@ -99,15 +99,23 @@ graphical (eventually 3D) client without rewriting any game logic:
   bars, items on the ground.
 - The client can also act: `{"type": "command", "line": "..."}` runs the exact
   same `CommandProcessor.dispatch()` a telnet player uses, so `go north`,
-  `say ...`, `talk <npc> ...`, `attack <npc>`, and `flee` all behave
-  identically whether they came from telnet or the browser, no separate
-  rules to maintain per client. The web page wraps this behind exit buttons,
-  a Say box, per-NPC Attack buttons, a Flee button, and a raw command box for
-  anything else already implemented on the telnet side. Narrative output
+  `say ...`, `talk <npc> ...`, `attack <npc>`, `flee`, `buy`, `sell`, and
+  `loot` all behave identically whether they came from telnet or the
+  browser, no separate rules to maintain per client. The web page wraps this
+  behind exit buttons, a Say box, per-NPC Attack/Loot buttons, a Flee button,
+  a Merchants panel (Buy per item) that appears when a vendor NPC is present,
+  a "You" panel (gold, inventory with Sell buttons), and a raw command box
+  for anything else already implemented on the telnet side. Narrative output
   (attack rolls, "you say...", NPC replies) is relayed back over the socket
   as `{"type": "log", "text": "..."}` and rendered with the same ANSI colors
-  telnet shows. Shopping, looting, and spellcasting aren't in the client's UI
-  yet, but work if typed into the raw command box.
+  telnet shows.
+- Gold and inventory are player-private, so they travel separately from the
+  shared room broadcast: every pushed state includes a `self` key built from
+  `Player.to_client_state()`, computed per recipient rather than shared
+  verbatim like the rest of the payload. Merchant wares are public (anyone
+  can `shop`) and live directly on the NPC's entry in the shared state.
+  Spellcasting isn't in the client's UI yet, but works if typed into the raw
+  command box.
 
 To try it: start the server, log in over telnet, then open `mud/web/index.html`
 in a browser, enter the same player name, and hit Connect.

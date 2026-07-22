@@ -185,7 +185,7 @@ class MUDServer:
                     continue
                 identified_name = candidate.player.name
                 self.ws_clients[identified_name] = ws
-                await self._send_room_state(ws, candidate.player.current_room_id)
+                await self._send_room_state(ws, candidate.player)
 
             elif data.get("type") == "command":
                 if not identified_name:
@@ -209,17 +209,26 @@ class MUDServer:
                     await processor.dispatch(cmd, args)
                 except SystemExit:
                     pass  # 'quit' saves and returns; doesn't disconnect the telnet session
+                else:
+                    # Commands like buy/sell/loot/equip only ever wrote to the
+                    # acting player (no broadcast_to_room call), so push a
+                    # refresh explicitly, gold/inventory/corpse-removal would
+                    # otherwise go stale in the web client until someone else
+                    # triggered a broadcast.
+                    await self.push_room_state(session.player.current_room_id)
 
         if identified_name and self.ws_clients.get(identified_name) is ws:
             del self.ws_clients[identified_name]
         return ws
 
-    async def _send_room_state(self, ws: web.WebSocketResponse, room_id: str):
-        room = self.world.get_room(room_id) if self.world else None
+    async def _send_room_state(self, ws: web.WebSocketResponse, player: "Player"):
+        room = self.world.get_room(player.current_room_id) if self.world else None
         if not room:
             return
         self.state_seq += 1
-        await ws.send_json(room.to_state_dict(self.world, self.sessions, self.state_seq))
+        payload = room.to_state_dict(self.world, self.sessions, self.state_seq)
+        payload["self"] = player.to_client_state()
+        await ws.send_json(payload)
 
     async def push_room_state(self, room_id: str):
         if not self.ws_clients or not self.world:
@@ -228,8 +237,10 @@ class MUDServer:
         if not room:
             return
         self.state_seq += 1
-        payload = room.to_state_dict(self.world, self.sessions, self.state_seq)
+        base = room.to_state_dict(self.world, self.sessions, self.state_seq)
         for name, ws in list(self.ws_clients.items()):
             session = self.sessions.get(name)
             if session and session.player and session.player.current_room_id == room_id:
+                payload = dict(base)
+                payload["self"] = session.player.to_client_state()
                 await ws.send_json(payload)

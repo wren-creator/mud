@@ -16,6 +16,25 @@ class Player(Character):
         _apply_starting_gear(p)
         return p
 
+    def to_client_state(self) -> dict:
+        """Private snapshot for the WebSocket state feed (POC web client).
+
+        Kept separate from the public room_state payload, gold and inventory
+        aren't visible to other players the way equipped gear is.
+        """
+        return {
+            "name": self.name,
+            "gold": self.gold,
+            "inventory": [
+                {"id": i.id, "name": i.name, "item_type": i.item_type, "value": i.value}
+                for i in self.inventory
+            ],
+            "equipment": {
+                slot: (item.name if item else None)
+                for slot, item in self.equipment.items()
+            },
+        }
+
     def to_dict(self) -> dict:
         s = self.stats
         return {

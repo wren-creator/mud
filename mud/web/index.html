@@ -178,7 +178,21 @@
     cursor: pointer;
   }
   .mini-btn:hover { filter: brightness(1.12); }
-  .mini-btn.flee-btn { background: var(--hp-mid); color: #2a2205; }
+  .mini-btn.flee-btn, .mini-btn.loot-btn { background: var(--hp-mid); color: #2a2205; }
+  .mini-btn.sell-btn, .mini-btn.buy-btn { background: var(--hp-full); color: #0d2a12; }
+
+  #sidebar .section-title { margin: 4px 0 6px; }
+  #sidebar .entity { flex-wrap: wrap; }
+
+  .merchant-block {
+    margin-bottom: 12px;
+    padding: 8px 10px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  .merchant-name { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
+  .merchant-block .entity { background: var(--bg); }
 
   details { margin-top: 28px; }
   summary { cursor: pointer; color: var(--dim); font-size: 12px; }
@@ -208,10 +222,15 @@
 
   <div id="status" class="pending">not connected</div>
 
+  <div class="section-title">You</div>
+  <div id="selfGold" class="empty">not connected</div>
+  <ul id="selfInventory" class="entity-list"></ul>
+
   <p style="font-size:11px;color:var(--dim);line-height:1.5;margin-top:auto;">
-    Proof-of-concept client. Click an exit to move, an Attack button to fight,
-    or use the Say / Command boxes to chat and act. Shopping, looting, and
-    spells still need the telnet session for now.
+    Proof-of-concept client. Click an exit to move, Attack/Loot on NPCs, Buy
+    from a merchant's wares, Sell from your inventory, or use the Say /
+    Command boxes for everything else. Spellcasting still needs the telnet
+    session for now.
   </p>
 </div>
 
@@ -243,6 +262,11 @@
 
     <div class="section-title">NPCs</div>
     <ul id="npcs" class="entity-list"></ul>
+
+    <div id="merchantsSection" style="display:none;">
+      <div class="section-title">Merchants</div>
+      <div id="merchants"></div>
+    </div>
 
     <div class="section-title">Items on the ground</div>
     <ul id="items" class="entity-list"></ul>
@@ -362,12 +386,44 @@
         <span class="name">${n.name}</span>
         <span class="meta">${n.race} · ${n.role}${n.hostile ? ' · hostile' : ''}</span>
         ${hpBar(n.hp, n.max_hp)}
-        ${n.alive ? `<button class="mini-btn attack-btn" data-target="${n.name}">Attack</button>` : ''}
+        ${n.alive
+          ? `<button class="mini-btn attack-btn" data-target="${n.name}">Attack</button>`
+          : `<button class="mini-btn loot-btn" data-target="${n.name}">Loot</button>`}
       </li>
     `).join('') : '<li class="empty">no NPCs here</li>';
     npcsEl.querySelectorAll('.attack-btn').forEach(btn => {
       btn.addEventListener('click', () => sendCommand('attack ' + btn.dataset.target));
     });
+    npcsEl.querySelectorAll('.loot-btn').forEach(btn => {
+      btn.addEventListener('click', () => sendCommand('loot ' + btn.dataset.target));
+    });
+
+    const merchants = state.npcs.filter(n => n.shop && n.shop.length);
+    const merchantsSection = document.getElementById('merchantsSection');
+    const merchantsEl = document.getElementById('merchants');
+    if (merchants.length) {
+      merchantsSection.style.display = 'block';
+      merchantsEl.innerHTML = merchants.map(npc => `
+        <div class="merchant-block">
+          <div class="merchant-name">${npc.name}</div>
+          <ul class="entity-list">
+            ${npc.shop.map(item => `
+              <li class="entity">
+                <span class="name">${item.name}</span>
+                <span class="meta">${item.price} gp</span>
+                <button class="mini-btn buy-btn" data-item="${item.name}">Buy</button>
+              </li>
+            `).join('')}
+          </ul>
+        </div>
+      `).join('');
+      merchantsEl.querySelectorAll('.buy-btn').forEach(btn => {
+        btn.addEventListener('click', () => sendCommand('buy ' + btn.dataset.item));
+      });
+    } else {
+      merchantsSection.style.display = 'none';
+      merchantsEl.innerHTML = '';
+    }
 
     const itemsEl = document.getElementById('items');
     itemsEl.innerHTML = state.items.length ? state.items.map(i => `
@@ -376,6 +432,26 @@
         <span class="meta">${i.item_type}</span>
       </li>
     `).join('') : '<li class="empty">nothing here</li>';
+
+    if (state.self) renderSelfState(state.self);
+  }
+
+  function renderSelfState(self) {
+    const goldEl = document.getElementById('selfGold');
+    goldEl.textContent = `Gold: ${self.gold} gp`;
+    goldEl.className = '';
+
+    const invEl = document.getElementById('selfInventory');
+    invEl.innerHTML = self.inventory.length ? self.inventory.map(i => `
+      <li class="entity">
+        <span class="name">${i.name}</span>
+        <span class="meta">${i.item_type}</span>
+        <button class="mini-btn sell-btn" data-item="${i.name}">Sell</button>
+      </li>
+    `).join('') : '<li class="empty">nothing carried</li>';
+    invEl.querySelectorAll('.sell-btn').forEach(btn => {
+      btn.addEventListener('click', () => sendCommand('sell ' + btn.dataset.item));
+    });
   }
 
   function sendCommand(line) {
