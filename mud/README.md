@@ -71,6 +71,8 @@ mud/
 │   └── room.py       — Room data class
 ├── db/
 │   └── database.py   — SQLite persistence (players, passwords)
+├── web/
+│   └── index.html    — Proof-of-concept web client for the room-state feed (see below)
 └── data/
     ├── items.yaml
     └── zones/
@@ -78,6 +80,28 @@ mud/
         ├── undermountain_l1.yaml
         └── city_of_spider_queen.yaml
 ```
+
+## Room-State WebSocket Feed (3D client proof of concept)
+
+The telnet game loop and rules are untouched. Alongside it, the server exposes
+structured (JSON) room state over a WebSocket, the first step toward a
+graphical (eventually 3D) client without rewriting any game logic:
+
+- `Room.to_state_dict()` (`world/room.py`) builds a snapshot of a room, its
+  players, NPCs, and items.
+- The server pushes it over `ws://<host>:4001/ws`. A client sends
+  `{"type": "identify", "name": "<player name>"}` for a player that's already
+  logged in over telnet (no separate WebSocket auth), gets the current room
+  snapshot back, then receives a fresh one automatically any time something in
+  that room changes, movement, combat, chat, item pickup, NPC respawn/roam.
+- `mud/web/index.html` is a plain, dependency-free web page that connects to
+  the feed and renders it live, room description, exits, players/NPCs with HP
+  bars, items on the ground. It's read-only for now; movement and commands
+  still go through the telnet session, this client only proves the state feed
+  works end to end before any 3D rendering is built on top of it.
+
+To try it: start the server, log in over telnet, then open `mud/web/index.html`
+in a browser, enter the same player name, and hit Connect.
 
 ## Character Creation
 
