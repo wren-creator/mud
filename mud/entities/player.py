@@ -25,6 +25,8 @@ class Player(Character):
         return {
             "name": self.name,
             "gold": self.gold,
+            "hp": self.hp,
+            "max_hp": self.max_hp,
             "inventory": [
                 {"id": i.id, "name": i.name, "item_type": i.item_type, "value": i.value}
                 for i in self.inventory
@@ -33,6 +35,9 @@ class Player(Character):
                 slot: (item.name if item else None)
                 for slot, item in self.equipment.items()
             },
+            "is_spellcaster": self.is_spellcaster,
+            "spell_slots": self.spell_slots,
+            "max_spell_slots": self.max_spell_slots,
         }
 
     def to_dict(self) -> dict:

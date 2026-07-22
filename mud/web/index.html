@@ -50,7 +50,7 @@
     text-transform: uppercase;
     letter-spacing: .03em;
   }
-  input {
+  input, select {
     width: 100%;
     padding: 6px 8px;
     background: var(--bg);
@@ -194,6 +194,15 @@
   .merchant-name { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
   .merchant-block .entity { background: var(--bg); }
 
+  .link-btn {
+    background: transparent;
+    color: var(--dim);
+    font-weight: 400;
+    text-decoration: underline;
+    padding: 4px 2px;
+  }
+  #spellSlots { font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+
   details { margin-top: 28px; }
   summary { cursor: pointer; color: var(--dim); font-size: 12px; }
   pre {
@@ -215,10 +224,32 @@
   <label for="wsUrl">Server</label>
   <input id="wsUrl" value="ws://127.0.0.1:4001/ws">
 
-  <label for="playerName">Player name (must already be logged in over telnet)</label>
-  <input id="playerName" placeholder="e.g. Britley">
+  <div id="nameStep">
+    <label for="playerName">Character name</label>
+    <input id="playerName" placeholder="e.g. Britley">
+    <button id="checkNameBtn">Continue</button>
+  </div>
 
-  <button id="connectBtn">Connect</button>
+  <div id="authStep" style="display:none;">
+    <div id="authHint" class="empty" style="margin:0 0 6px;"></div>
+
+    <div id="attachRow" style="display:none;">
+      <button id="attachBtn">Attach to live session</button>
+    </div>
+
+    <div id="passwordRow" style="display:none;">
+      <label for="passwordInput">Password</label>
+      <input id="passwordInput" type="password">
+    </div>
+
+    <div id="classRow" style="display:none;">
+      <label for="classSelect">Class</label>
+      <select id="classSelect"></select>
+    </div>
+
+    <button id="submitAuthBtn" style="display:none;"></button>
+    <button id="backBtn" class="link-btn">&larr; use a different name</button>
+  </div>
 
   <div id="status" class="pending">not connected</div>
 
@@ -227,10 +258,11 @@
   <ul id="selfInventory" class="entity-list"></ul>
 
   <p style="font-size:11px;color:var(--dim);line-height:1.5;margin-top:auto;">
-    Proof-of-concept client. Click an exit to move, Attack/Loot on NPCs, Buy
-    from a merchant's wares, Sell from your inventory, or use the Say /
-    Command boxes for everything else. Spellcasting still needs the telnet
-    session for now.
+    Proof-of-concept client. Enter a name to log in or create a character,
+    no telnet needed, though "Attach" also works if you're already logged
+    in over telnet elsewhere. Click an exit to move, Attack/Loot on NPCs,
+    Buy/Sell, cast from the Spells panel, or use Say / Command for anything
+    else.
   </p>
 </div>
 
@@ -257,6 +289,16 @@
       <button id="commandSendBtn">Send</button>
     </div>
 
+    <div id="spellsSection" style="display:none;">
+      <div class="section-title">Spells</div>
+      <div id="spellSlots" class="empty"></div>
+      <div class="input-row">
+        <select id="spellSelect"></select>
+        <select id="spellTargetSelect"></select>
+        <button id="castBtn">Cast</button>
+      </div>
+    </div>
+
     <div class="section-title">Players</div>
     <ul id="players" class="entity-list"></ul>
 
@@ -281,7 +323,6 @@
 <script>
   const wsUrlInput = document.getElementById('wsUrl');
   const nameInput = document.getElementById('playerName');
-  const connectBtn = document.getElementById('connectBtn');
   const statusEl = document.getElementById('status');
   const emptyEl = document.getElementById('empty');
   const roomEl = document.getElementById('room');
@@ -398,6 +439,12 @@
       btn.addEventListener('click', () => sendCommand('loot ' + btn.dataset.target));
     });
 
+    const aliveNpcs = state.npcs.filter(n => n.alive);
+    const targetSelect = document.getElementById('spellTargetSelect');
+    targetSelect.innerHTML = aliveNpcs.length
+      ? aliveNpcs.map(n => `<option value="${n.name}">${n.name}</option>`).join('')
+      : '<option value="">no targets here</option>';
+
     const merchants = state.npcs.filter(n => n.shop && n.shop.length);
     const merchantsSection = document.getElementById('merchantsSection');
     const merchantsEl = document.getElementById('merchants');
@@ -438,7 +485,7 @@
 
   function renderSelfState(self) {
     const goldEl = document.getElementById('selfGold');
-    goldEl.textContent = `Gold: ${self.gold} gp`;
+    goldEl.textContent = `Gold: ${self.gold} gp   HP: ${self.hp}/${self.max_hp}`;
     goldEl.className = '';
 
     const invEl = document.getElementById('selfInventory');
@@ -452,7 +499,36 @@
     invEl.querySelectorAll('.sell-btn').forEach(btn => {
       btn.addEventListener('click', () => sendCommand('sell ' + btn.dataset.item));
     });
+
+    const spellsSection = document.getElementById('spellsSection');
+    if (self.is_spellcaster) {
+      spellsSection.style.display = 'block';
+      const ordinals = ['1st', '2nd', '3rd', '4th', '5th'];
+      const parts = self.max_spell_slots
+        .map((mx, i) => mx > 0 ? `${ordinals[i]}: ${self.spell_slots[i]}/${mx}` : null)
+        .filter(Boolean);
+      document.getElementById('spellSlots').textContent = parts.length
+        ? `Slots — ${parts.join(' · ')}  (cantrips unlimited)`
+        : 'Cantrips only';
+    } else {
+      spellsSection.style.display = 'none';
+    }
   }
+
+  function populateSpellSelect(spells) {
+    const ordinals = ['Cantrip', '1st', '2nd', '3rd', '4th', '5th'];
+    const sel = document.getElementById('spellSelect');
+    sel.innerHTML = spells
+      .map(s => `<option value="${s.name}">${s.name} (${ordinals[s.level] || s.level})</option>`)
+      .join('');
+  }
+
+  document.getElementById('castBtn').addEventListener('click', () => {
+    const spell = document.getElementById('spellSelect').value;
+    const target = document.getElementById('spellTargetSelect').value;
+    if (!spell || !target) return;
+    sendCommand(`cast ${spell} at ${target}`);
+  });
 
   function sendCommand(line) {
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
@@ -487,57 +563,128 @@
 
   document.getElementById('fleeBtn').addEventListener('click', () => sendCommand('flee'));
 
-  connectBtn.addEventListener('click', () => {
-    if (ws) {
-      ws.close();
-      ws = null;
-    }
+  // ── Login / character creation flow ─────────────────────────────────────
+  const nameStepEl = document.getElementById('nameStep');
+  const authStepEl = document.getElementById('authStep');
+  const authHintEl = document.getElementById('authHint');
+  const attachRowEl = document.getElementById('attachRow');
+  const passwordRowEl = document.getElementById('passwordRow');
+  const classRowEl = document.getElementById('classRow');
+  const submitAuthBtn = document.getElementById('submitAuthBtn');
+  const passwordInput = document.getElementById('passwordInput');
+  const classSelect = document.getElementById('classSelect');
+  const checkNameBtn = document.getElementById('checkNameBtn');
 
+  let pendingName = '';
+  let authMode = null; // 'login' | 'create'
+
+  function sendRaw(obj) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify(obj));
+  }
+
+  function resetToNameStep() {
+    authStepEl.style.display = 'none';
+    nameStepEl.style.display = 'block';
+    roomEl.style.display = 'none';
+    emptyEl.style.display = 'block';
+    checkNameBtn.disabled = false;
+  }
+
+  checkNameBtn.addEventListener('click', () => {
     const url = wsUrlInput.value.trim();
     const name = nameInput.value.trim();
     if (!url || !name) {
-      setStatus('enter a server URL and player name', 'err');
+      setStatus('enter a server URL and character name', 'err');
       return;
     }
 
+    if (ws) { ws.close(); ws = null; }
     logEl.innerHTML = '';
     setStatus('connecting…', 'pending');
-    connectBtn.disabled = true;
+    checkNameBtn.disabled = true;
 
     ws = new WebSocket(url);
-
-    ws.addEventListener('open', () => {
-      ws.send(JSON.stringify({ type: 'identify', name }));
-    });
-
-    ws.addEventListener('message', (evt) => {
-      const data = JSON.parse(evt.data);
-      if (data.type === 'error') {
-        setStatus('server error: ' + data.message, 'err');
-        connectBtn.disabled = false;
-        return;
-      }
-      if (data.type === 'log') {
-        appendLog(data.text);
-        return;
-      }
-      if (data.type === 'room_state') {
-        setStatus(`connected as ${name}`, 'ok');
-        connectBtn.disabled = false;
-        renderRoomState(data);
-      }
-    });
-
+    ws.addEventListener('open', () => sendRaw({ type: 'check_name', name }));
+    ws.addEventListener('message', handleMessage);
     ws.addEventListener('close', () => {
       setStatus('disconnected', 'err');
-      connectBtn.disabled = false;
+      resetToNameStep();
     });
-
     ws.addEventListener('error', () => {
       setStatus('connection error', 'err');
-      connectBtn.disabled = false;
+      checkNameBtn.disabled = false;
     });
   });
+
+  document.getElementById('backBtn').addEventListener('click', () => {
+    if (ws) { ws.close(); ws = null; }
+    resetToNameStep();
+    setStatus('not connected', 'pending');
+  });
+
+  document.getElementById('attachBtn').addEventListener('click', () => {
+    sendRaw({ type: 'identify', name: pendingName });
+  });
+
+  submitAuthBtn.addEventListener('click', () => {
+    submitAuthBtn.disabled = true;
+    if (authMode === 'login') {
+      sendRaw({ type: 'login', name: pendingName, password: passwordInput.value });
+    } else {
+      sendRaw({ type: 'create_account', name: pendingName, password: passwordInput.value, char_class: classSelect.value });
+    }
+  });
+
+  function handleMessage(evt) {
+    const data = JSON.parse(evt.data);
+
+    if (data.type === 'name_status') {
+      pendingName = data.name;
+      nameStepEl.style.display = 'none';
+      authStepEl.style.display = 'block';
+
+      attachRowEl.style.display = data.active ? 'block' : 'none';
+      passwordRowEl.style.display = data.active ? 'none' : 'block';
+      classRowEl.style.display = (!data.active && !data.exists) ? 'block' : 'none';
+      submitAuthBtn.style.display = data.active ? 'none' : 'block';
+      submitAuthBtn.disabled = false;
+
+      if (!data.exists) {
+        classSelect.innerHTML = data.classes.map(c => `<option>${c}</option>`).join('');
+      }
+      authMode = data.exists ? 'login' : 'create';
+      submitAuthBtn.textContent = data.exists ? 'Log In' : 'Create Character';
+      authHintEl.textContent = data.active
+        ? `${data.name} is already connected elsewhere.`
+        : (data.exists ? `Enter the password for ${data.name}.` : `${data.name} is a new name — pick a class to create it.`);
+      setStatus('waiting for login', 'pending');
+      return;
+    }
+
+    if (data.type === 'error') {
+      setStatus('error: ' + data.message, 'err');
+      submitAuthBtn.disabled = false;
+      return;
+    }
+
+    if (data.type === 'log') {
+      appendLog(data.text);
+      return;
+    }
+
+    if (data.type === 'spell_catalog') {
+      populateSpellSelect(data.spells);
+      return;
+    }
+
+    if (data.type === 'room_state') {
+      nameStepEl.style.display = 'none';
+      authStepEl.style.display = 'none';
+      setStatus(`connected as ${pendingName}`, 'ok');
+      renderRoomState(data);
+    }
+  }
 </script>
 
 </body>

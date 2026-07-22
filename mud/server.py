@@ -7,6 +7,40 @@ from aiohttp import web
 
 log = logging.getLogger(__name__)
 
+# Same order session.py's telnet _pick_class() offers; duplicated rather than
+# imported since that list is a local var there, not a shared constant.
+WS_CLASSES = [
+    "Barbarian", "Bard", "Cleric", "Druid", "Fighter",
+    "Monk", "Paladin", "Ranger", "Rogue", "Sorcerer",
+    "Warlock", "Wizard",
+]
+
+
+def _spell_catalog() -> list:
+    from systems.combat import SPELLS, SPELL_LEVELS
+    return [
+        {"name": name, "level": SPELL_LEVELS.get(name, 1), "description": desc}
+        for name, (_, _, _, _, desc) in SPELLS.items()
+    ]
+
+
+class WsOnlySession:
+    """Stands in for a ClientSession for a player who logged in straight
+    from the web client, no telnet connection involved. Implements just
+    enough (.player, .server, async .writeln) for the existing broadcast
+    and CommandProcessor machinery to treat it like any other session."""
+
+    def __init__(self, server: "MUDServer", ws: web.WebSocketResponse, player):
+        self.server = server
+        self.ws = ws
+        self.player = player
+
+    async def writeln(self, text: str = ""):
+        try:
+            await self.ws.send_json({"type": "log", "text": text})
+        except ConnectionResetError:
+            pass
+
 
 class _WsCommandSession:
     """Wraps a real ClientSession so a WS-issued command's own narrative
@@ -163,11 +197,13 @@ class MUDServer:
 
     async def _handle_ws(self, request: "web.Request") -> web.WebSocketResponse:
         import json
+        from db.database import Database
 
         ws = web.WebSocketResponse()
         await ws.prepare(request)
 
         identified_name = None
+        owns_session = False  # True if this connection created its own WsOnlySession
         async for msg in ws:
             if msg.type != web.WSMsgType.TEXT:
                 continue
@@ -176,20 +212,80 @@ class MUDServer:
             except ValueError:
                 continue
 
-            if data.get("type") == "identify":
-                # Piggybacks on an existing telnet-authenticated session rather
-                # than implementing a separate login over WebSocket.
+            msg_type = data.get("type")
+
+            if msg_type == "check_name":
+                # Lets the client decide which form to show: attach to an
+                # already-live session, log in with a password, or create
+                # a brand new character, before committing to any of them.
+                name = str(data.get("name", "")).strip().capitalize()
+                await ws.send_json({
+                    "type": "name_status",
+                    "name": name,
+                    "exists": Database.account_exists(name),
+                    "active": name in self.sessions,
+                    "classes": WS_CLASSES,
+                })
+
+            elif msg_type == "identify":
+                # Attaches to an existing live session (usually a telnet
+                # player who also wants the visual view) rather than logging
+                # in fresh.
                 candidate = self.sessions.get(str(data.get("name", "")).capitalize())
                 if not candidate or not candidate.player:
                     await ws.send_json({"type": "error", "message": "no such logged-in player"})
                     continue
                 identified_name = candidate.player.name
-                self.ws_clients[identified_name] = ws
-                await self._send_room_state(ws, candidate.player)
+                await self._on_session_ready(ws, identified_name, candidate.player)
 
-            elif data.get("type") == "command":
+            elif msg_type == "login":
+                name = str(data.get("name", "")).strip().capitalize()
+                password = str(data.get("password", ""))
+                if name in self.sessions:
+                    await ws.send_json({"type": "error", "message": "that character is already connected"})
+                    continue
+                if not Database.check_password(name, password):
+                    await ws.send_json({"type": "error", "message": "wrong password"})
+                    continue
+                player = Database.load_player(name)
+                if not player:
+                    await ws.send_json({"type": "error", "message": "no such character"})
+                    continue
+                session = WsOnlySession(self, ws, player)
+                self.sessions[name] = session
+                identified_name = name
+                owns_session = True
+                await self._on_session_ready(ws, identified_name, player)
+
+            elif msg_type == "create_account":
+                name = str(data.get("name", "")).strip().capitalize()
+                password = str(data.get("password", ""))
+                char_class = str(data.get("char_class", ""))
+                if not (2 <= len(name) <= 20):
+                    await ws.send_json({"type": "error", "message": "name must be 2-20 characters"})
+                    continue
+                if Database.account_exists(name):
+                    await ws.send_json({"type": "error", "message": "that name is already taken"})
+                    continue
+                if char_class not in WS_CLASSES:
+                    await ws.send_json({"type": "error", "message": "invalid class"})
+                    continue
+                if not password:
+                    await ws.send_json({"type": "error", "message": "password required"})
+                    continue
+                from entities.player import Player
+                player = Player.create_new(name, char_class)
+                Database.save_player(player, password)
+                session = WsOnlySession(self, ws, player)
+                self.sessions[name] = session
+                identified_name = name
+                owns_session = True
+                await session.writeln(f"Welcome to Undermountain, {name} the {char_class}! May Tymora smile upon you.")
+                await self._on_session_ready(ws, identified_name, player)
+
+            elif msg_type == "command":
                 if not identified_name:
-                    await ws.send_json({"type": "error", "message": "identify first"})
+                    await ws.send_json({"type": "error", "message": "log in first"})
                     continue
                 session = self.sessions.get(identified_name)
                 if not session or not session.player:
@@ -201,14 +297,20 @@ class MUDServer:
                 parts = line.split()
                 cmd, args = parts[0].lower(), parts[1:]
                 # Runs the exact same dispatch table a telnet player uses, so
-                # move/say/talk/attack/flee all stay in sync with no separate
-                # rules to maintain for the web client.
+                # move/say/talk/attack/flee/cast all stay in sync with no
+                # separate rules to maintain for the web client.
                 from commands import CommandProcessor
-                processor = CommandProcessor(_WsCommandSession(session, ws))
+                cmd_session = session if owns_session else _WsCommandSession(session, ws)
+                processor = CommandProcessor(cmd_session)
                 try:
                     await processor.dispatch(cmd, args)
                 except SystemExit:
-                    pass  # 'quit' saves and returns; doesn't disconnect the telnet session
+                    # 'quit': a telnet-piggybacked session keeps running on
+                    # its own telnet loop regardless; a web-native session
+                    # has nothing else keeping it alive, so end it here.
+                    if owns_session:
+                        await ws.send_json({"type": "log", "text": "Farewell, adventurer."})
+                        break
                 else:
                     # Commands like buy/sell/loot/equip only ever wrote to the
                     # acting player (no broadcast_to_room call), so push a
@@ -219,7 +321,15 @@ class MUDServer:
 
         if identified_name and self.ws_clients.get(identified_name) is ws:
             del self.ws_clients[identified_name]
+        if owns_session and identified_name and self.sessions.get(identified_name) is not None:
+            Database.save_player(self.sessions[identified_name].player)
+            del self.sessions[identified_name]
         return ws
+
+    async def _on_session_ready(self, ws: web.WebSocketResponse, name: str, player: "Player"):
+        self.ws_clients[name] = ws
+        await self._send_room_state(ws, player)
+        await ws.send_json({"type": "spell_catalog", "spells": _spell_catalog()})
 
     async def _send_room_state(self, ws: web.WebSocketResponse, player: "Player"):
         room = self.world.get_room(player.current_room_id) if self.world else None

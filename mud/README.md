@@ -85,40 +85,54 @@ mud/
 
 The telnet game loop and rules are untouched. Alongside it, the server exposes
 structured (JSON) room state over a WebSocket, the first step toward a
-graphical (eventually 3D) client without rewriting any game logic:
+graphical (eventually 3D) client without rewriting any game logic. The web
+client is now a standalone way to play, telnet isn't required.
 
 - `Room.to_state_dict()` (`world/room.py`) builds a snapshot of a room, its
-  players, NPCs, and items.
-- The server pushes it over `ws://<host>:4001/ws`. A client sends
-  `{"type": "identify", "name": "<player name>"}` for a player that's already
-  logged in over telnet (no separate WebSocket auth), gets the current room
-  snapshot back, then receives a fresh one automatically any time something in
-  that room changes, movement, combat, chat, item pickup, NPC respawn/roam.
+  players, NPCs, and items. The server pushes it over `ws://<host>:4001/ws`,
+  once on login and again automatically any time something in that room
+  changes, movement, combat, chat, item pickup, NPC respawn/roam.
 - `mud/web/index.html` is a plain, dependency-free web page that connects to
-  the feed and renders it live, room description, exits, players/NPCs with HP
-  bars, items on the ground.
+  the feed and renders it live.
+- **Login / character creation happens over the socket itself**, no telnet
+  session required: `{"type": "check_name", "name": "..."}` tells the client
+  whether that name is a new character (show a class picker), an existing
+  one (show a password box), or already connected elsewhere (offer to
+  attach instead). `{"type": "login", ...}` / `{"type": "create_account",
+  ...}` follow. `{"type": "identify", "name": "..."}` still exists
+  separately for attaching the web view to a session that's already logged
+  in over telnet, useful for watching the two clients side by side, but it's
+  no longer the only way in. A web-native login is backed by
+  `WsOnlySession` (`server.py`), a stand-in that implements just enough of
+  the `ClientSession` interface (`.player`, `.server`, async `.writeln()`)
+  for the existing broadcast and command machinery to treat it like any
+  other player, no parallel game loop needed.
 - The client can also act: `{"type": "command", "line": "..."}` runs the exact
   same `CommandProcessor.dispatch()` a telnet player uses, so `go north`,
-  `say ...`, `talk <npc> ...`, `attack <npc>`, `flee`, `buy`, `sell`, and
-  `loot` all behave identically whether they came from telnet or the
-  browser, no separate rules to maintain per client. The web page wraps this
-  behind exit buttons, a Say box, per-NPC Attack/Loot buttons, a Flee button,
-  a Merchants panel (Buy per item) that appears when a vendor NPC is present,
-  a "You" panel (gold, inventory with Sell buttons), and a raw command box
-  for anything else already implemented on the telnet side. Narrative output
-  (attack rolls, "you say...", NPC replies) is relayed back over the socket
-  as `{"type": "log", "text": "..."}` and rendered with the same ANSI colors
-  telnet shows.
-- Gold and inventory are player-private, so they travel separately from the
-  shared room broadcast: every pushed state includes a `self` key built from
-  `Player.to_client_state()`, computed per recipient rather than shared
-  verbatim like the rest of the payload. Merchant wares are public (anyone
-  can `shop`) and live directly on the NPC's entry in the shared state.
-  Spellcasting isn't in the client's UI yet, but works if typed into the raw
-  command box.
+  `say ...`, `talk <npc> ...`, `attack <npc>`, `flee`, `buy`, `sell`, `loot`,
+  and `cast <spell> at <target>` all behave identically whether they came
+  from telnet or the browser, no separate rules to maintain per client. The
+  web page wraps this behind exit buttons, a Say box, per-NPC Attack/Loot
+  buttons, a Flee button, a Merchants panel (Buy per item), a "You" panel
+  (gold, HP, inventory with Sell buttons), a Spells panel (slot counts, spell
+  + target pickers, only shown for spellcasting classes), and a raw command
+  box for anything else already implemented on the telnet side. Narrative
+  output (attack rolls, "you say...", NPC replies) is relayed back over the
+  socket as `{"type": "log", "text": "..."}` and rendered with the same ANSI
+  colors telnet shows.
+- Gold, inventory, HP, and spell slots are player-private, so they travel
+  separately from the shared room broadcast: every pushed state includes a
+  `self` key built from `Player.to_client_state()`, computed per recipient
+  rather than shared verbatim like the rest of the payload. Merchant wares
+  are public (anyone can `shop`) and live directly on the NPC's entry in the
+  shared state. The spell catalog (names/levels/descriptions) is static, not
+  per-player, so it's sent once as `{"type": "spell_catalog", ...}` right
+  after login rather than riding on every state push.
 
-To try it: start the server, log in over telnet, then open `mud/web/index.html`
-in a browser, enter the same player name, and hit Connect.
+To try it: `./start.sh`, then open `mud/web/index.html` in a browser and enter
+a character name, no telnet needed. (Telnet still works exactly as before,
+and `{"type": "identify", ...}` lets a browser tab attach to a telnet session
+that's already logged in, if you want both views on the same character.)
 
 ## Character Creation
 
