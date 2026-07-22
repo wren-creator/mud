@@ -108,7 +108,7 @@
     color: var(--dim);
   }
 
-  .layout { display: flex; flex: 1; min-height: 0; }
+  .layout { display: flex; flex: 1; min-height: 0; justify-content: center; }
 
   #sidebar {
     width: 280px;
@@ -354,6 +354,71 @@
     overflow-x: auto;
     color: #cfc9dd;
   }
+
+  /* ── Atlas — a small "you are here" zone map, fills the space a fixed-
+     width sidebar + max-width main otherwise leave dead on wide screens. */
+  #atlas {
+    width: 240px;
+    flex-shrink: 0;
+    padding: 26px 22px;
+    border-left: 1px solid var(--stone-line);
+    background: linear-gradient(180deg, var(--void-2), var(--void));
+  }
+  #atlas .section-title { margin-top: 0; }
+  #atlasZones { list-style: none; margin: 0; padding: 0; position: relative; }
+  #atlasZones::before {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background: var(--stone-line);
+  }
+  .atlas-zone {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+  }
+  .atlas-marker {
+    position: relative;
+    z-index: 1;
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    border: 2px solid var(--stone-line);
+    background: var(--void);
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .atlas-label {
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 12px;
+    letter-spacing: .03em;
+    color: var(--dim);
+    line-height: 1.4;
+  }
+  .atlas-zone.current .atlas-marker {
+    border-color: var(--spider);
+    background: var(--spider);
+    box-shadow: 0 0 8px 2px rgba(205,106,223,.6);
+  }
+  .atlas-zone.current .atlas-label {
+    color: var(--spider);
+    font-weight: 600;
+  }
+  .atlas-flavor {
+    margin-top: 24px;
+    font-size: 11px;
+    font-style: italic;
+    color: var(--dim);
+    line-height: 1.6;
+  }
+  @media (max-width: 1300px) {
+    #atlas { display: none; }
+  }
 </style>
 </head>
 <body>
@@ -465,6 +530,25 @@
     </details>
   </div>
 </div>
+
+<aside id="atlas">
+  <div class="section-title">Undermountain</div>
+  <ul id="atlasZones">
+    <li class="atlas-zone" data-zone="yawning_portal">
+      <span class="atlas-marker"></span>
+      <span class="atlas-label">The Yawning Portal Inn</span>
+    </li>
+    <li class="atlas-zone" data-zone="undermountain_l1">
+      <span class="atlas-marker"></span>
+      <span class="atlas-label">Undermountain, Level 1</span>
+    </li>
+    <li class="atlas-zone" data-zone="city_of_spider_queen">
+      <span class="atlas-marker"></span>
+      <span class="atlas-label">City of the Spider Queen</span>
+    </li>
+  </ul>
+  <p class="atlas-flavor">Waterdeep's underbelly runs deep. Deeper still runs the Spider Queen's web.</p>
+</aside>
 </div>
 
 <script>
@@ -545,6 +629,10 @@
     document.getElementById('roomName').textContent = state.room.name;
     document.getElementById('roomZone').textContent = state.room.zone_id + ' · ' + state.room.id;
     document.getElementById('roomDesc').textContent = state.room.description;
+
+    document.querySelectorAll('.atlas-zone').forEach(el => {
+      el.classList.toggle('current', el.dataset.zone === state.room.zone_id);
+    });
     document.getElementById('seq').textContent = state.seq;
     document.getElementById('rawJson').textContent = JSON.stringify(state, null, 2);
 
