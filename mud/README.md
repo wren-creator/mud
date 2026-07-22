@@ -27,10 +27,18 @@ pip install -r requirements.txt
 ## Running the Server
 
 ```bash
+./start.sh   # starts in the background, logs to mud.log, tracks the PID in mud.pid
+./stop.sh    # stops it cleanly
+```
+
+Or run it directly in the foreground:
+
+```bash
 python main.py
 ```
 
-The server listens on port 4000.
+The telnet server listens on port 4000; the WebSocket state feed for the web
+client listens on port 4001.
 
 ## Connecting
 
@@ -133,6 +141,21 @@ To try it: `./start.sh`, then open `mud/web/index.html` in a browser and enter
 a character name, no telnet needed. (Telnet still works exactly as before,
 and `{"type": "identify", ...}` lets a browser tab attach to a telnet session
 that's already logged in, if you want both views on the same character.)
+
+### Visual theme
+
+The web client is styled after the two D&D modules the MUD is built on,
+"City of the Spider Queen" (drow, Lolth, purple/black) and "Ruins of
+Undermountain" (dungeon stone and torchlight), pulling directly from the
+telnet banner's own visual language rather than inventing a new one: the
+title banner reuses the magenta (Spider Queen) / cyan (Undermountain) color
+split and turns the diagonal `\ / \ / \ /` web-lattice ASCII art into an
+actual woven-lattice graphic. Room descriptions render on a parchment-styled
+card (EB Garamond serif), as if reading a page from the module itself, while
+the rest of the interface stays dark stone with an ember/torchlight vignette.
+Headings use Cinzel (Google Fonts, loaded via `<link>`, the only external
+dependency the page has). All functional colors (HP bars, Attack/Sell/Buy
+button semantics) are unchanged, only the chrome around them was restyled.
 
 ## Character Creation
 

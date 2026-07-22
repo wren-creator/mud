@@ -3,45 +3,132 @@
 <head>
 <meta charset="utf-8">
 <title>City of the Spider Queen — Room State (POC client)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=EB+Garamond:ital@0;1&display=swap" rel="stylesheet">
 <style>
   :root {
     color-scheme: dark;
-    --bg: #14121a;
-    --panel: #1f1c29;
-    --border: #362f45;
+    /* Atmosphere — Underdark stone, lit by ember torchlight */
+    --void: #0b0710;
+    --void-2: #150e1c;
+    --stone: #1e1726;
+    --stone-2: #251c30;
+    --stone-line: #3c2f4a;
+    /* An open module page, the one warm/light surface on the whole screen */
+    --parchment: #e8d9b0;
+    --parchment-ink: #2a2015;
+    --parchment-edge: #b8a06a;
+    /* Signature palette — Spider Queen magenta, Undermountain cyan, torch ember
+       (the same three tones the telnet banner already uses in ANSI) */
+    --spider: #cd6adf;
+    --spider-dim: #7d4a95;
+    --undermountain: #57d4c2;
+    --ember: #e2914f;
     --text: #e8e4f0;
-    --dim: #8a83a0;
-    --accent: #b892ff;
+    --dim: #948aa8;
+    /* Functional semantics — unchanged so buttons keep their learned meaning */
     --hp-full: #6fce7a;
     --hp-mid: #e0c34a;
     --hp-low: #e0664a;
     --hostile: #ff7a7a;
     --dead: #55506a;
+    /* Aliases: the rest of this file was written against these names */
+    --bg: var(--void);
+    --panel: var(--stone);
+    --border: var(--stone-line);
+    --accent: var(--spider);
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    background: var(--bg);
     color: var(--text);
     display: flex;
+    flex-direction: column;
     min-height: 100vh;
+    background:
+      radial-gradient(ellipse 140% 100% at 50% 40%, transparent 45%, rgba(0,0,0,.55) 100%),
+      radial-gradient(ellipse 55% 35% at 12% 0%, rgba(226,145,79,.10), transparent 60%),
+      radial-gradient(ellipse 65% 45% at 100% 100%, rgba(125,74,149,.18), transparent 60%),
+      linear-gradient(180deg, var(--void) 0%, var(--void-2) 100%);
+    background-attachment: fixed;
   }
+
+  /* ── Title banner — the one bold, memorable element on the page ────────── */
+  #gameBanner {
+    position: relative;
+    padding: 26px 32px 20px;
+    text-align: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--stone-line);
+    background: linear-gradient(180deg, var(--stone) 0%, var(--void) 100%);
+  }
+  #gameBanner::before {
+    /* A woven diagonal lattice, the same web motif the telnet banner draws
+       in ASCII ("\ / \ / \ /" between rows of "* · * ·"), rendered as an
+       actual net instead of characters. */
+    content: "";
+    position: absolute;
+    inset: -30% -10%;
+    background-image:
+      repeating-linear-gradient(45deg, rgba(205,106,223,.16) 0 1px, transparent 1px 34px),
+      repeating-linear-gradient(-45deg, rgba(205,106,223,.16) 0 1px, transparent 1px 34px);
+    -webkit-mask-image: radial-gradient(ellipse 70% 100% at 50% 0%, #000 40%, transparent 85%);
+            mask-image: radial-gradient(ellipse 70% 100% at 50% 0%, #000 40%, transparent 85%);
+    animation: web-shimmer 11s ease-in-out infinite;
+  }
+  @keyframes web-shimmer {
+    0%, 100% { opacity: .65; }
+    50% { opacity: 1; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    #gameBanner::before { animation: none; }
+  }
+  #gameBanner h1 {
+    position: relative;
+    margin: 0;
+    font-family: 'Cinzel', Georgia, 'Times New Roman', serif;
+    font-weight: 700;
+    font-size: clamp(20px, 3.2vw, 34px);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, var(--spider), var(--undermountain));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  #gameBanner p {
+    position: relative;
+    margin: 8px 0 0;
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .layout { display: flex; flex: 1; min-height: 0; }
+
   #sidebar {
-    width: 260px;
+    width: 280px;
     flex-shrink: 0;
-    padding: 16px;
-    background: var(--panel);
-    border-right: 1px solid var(--border);
+    padding: 18px;
+    background: linear-gradient(180deg, var(--stone-2), var(--stone));
+    border-right: 1px solid var(--stone-line);
+    box-shadow: inset -1px 0 0 rgba(0,0,0,.4);
     display: flex;
     flex-direction: column;
     gap: 10px;
+    overflow-y: auto;
   }
   #sidebar h1 {
-    font-size: 13px;
-    letter-spacing: .04em;
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .1em;
     text-transform: uppercase;
-    color: var(--accent);
+    color: var(--dim);
     margin: 0 0 4px;
   }
   label {
@@ -53,27 +140,31 @@
   input, select {
     width: 100%;
     padding: 6px 8px;
-    background: var(--bg);
+    background: var(--void);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 3px;
     color: var(--text);
     font: inherit;
   }
   button {
-    padding: 7px 10px;
-    background: var(--accent);
-    border: none;
-    border-radius: 4px;
-    color: #1a1424;
+    padding: 8px 12px;
+    background: linear-gradient(180deg, var(--spider), var(--spider-dim));
+    border: 1px solid rgba(0,0,0,.35);
+    border-radius: 3px;
+    color: #180a1e;
     font: inherit;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: .01em;
     cursor: pointer;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 2px 4px rgba(0,0,0,.35);
   }
+  button:hover:not(:disabled) { filter: brightness(1.08); }
+  button:active:not(:disabled) { transform: translateY(1px); box-shadow: none; }
   button:disabled { opacity: .5; cursor: default; }
   #status {
     font-size: 12px;
     padding: 6px 8px;
-    border-radius: 4px;
+    border-radius: 3px;
     border: 1px solid var(--border);
   }
   #status.ok { color: var(--hp-full); }
@@ -81,19 +172,58 @@
   #status.pending { color: var(--dim); }
   #main {
     flex: 1;
-    padding: 24px 32px;
+    padding: 26px 34px;
     overflow-y: auto;
     max-width: 900px;
+    background: radial-gradient(ellipse 120% 50% at 50% -10%, rgba(87,212,194,.05), transparent 60%);
   }
-  #roomName { margin: 0 0 4px; font-size: 22px; color: var(--accent); }
-  #roomZone { color: var(--dim); font-size: 12px; margin: 0 0 16px; }
-  #roomDesc { line-height: 1.5; white-space: pre-wrap; color: #cfc9dd; }
-  .section-title {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: .05em;
+  #roomName {
+    margin: 0 0 4px;
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 25px;
+    letter-spacing: .02em;
+    color: var(--spider);
+    text-shadow: 0 1px 0 rgba(0,0,0,.4);
+  }
+  #roomZone {
     color: var(--dim);
-    margin: 22px 0 8px;
+    font-size: 11px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    margin: 0 0 16px;
+  }
+  #roomDesc {
+    font-family: 'EB Garamond', Georgia, 'Iowan Old Style', serif;
+    font-size: 17px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    color: var(--parchment-ink);
+    background: var(--parchment);
+    background-image:
+      radial-gradient(ellipse at 15% 10%, rgba(0,0,0,.05), transparent 40%),
+      radial-gradient(ellipse at 90% 95%, rgba(0,0,0,.06), transparent 40%);
+    border: 1px solid var(--parchment-edge);
+    border-radius: 2px;
+    padding: 18px 20px;
+    box-shadow: 0 3px 12px rgba(0,0,0,.4), inset 0 0 30px rgba(120,90,40,.12);
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Cinzel', Georgia, serif;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--dim);
+    margin: 24px 0 10px;
+  }
+  .section-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--stone-line), transparent);
   }
   #exits { display: flex; gap: 6px; flex-wrap: wrap; }
   button.exit-pill {
@@ -104,6 +234,7 @@
     font-weight: 400;
     background: var(--panel);
     color: var(--text);
+    box-shadow: none;
     cursor: pointer;
   }
   button.exit-pill:hover:not(:disabled) {
@@ -119,10 +250,10 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px 10px;
-    background: var(--panel);
+    padding: 9px 12px;
+    background: var(--stone-2);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 3px;
   }
   .entity.dead { opacity: .5; text-decoration: line-through; }
   .entity .name { font-weight: 600; min-width: 140px; }
@@ -131,7 +262,7 @@
   .hpbar {
     width: 90px;
     height: 6px;
-    background: var(--bg);
+    background: var(--void);
     border-radius: 3px;
     overflow: hidden;
     border: 1px solid var(--border);
@@ -143,9 +274,9 @@
   #log {
     height: 220px;
     overflow-y: auto;
-    background: var(--panel);
+    background: var(--stone-2);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 3px;
     padding: 10px 12px;
     font-size: 12.5px;
     line-height: 1.5;
@@ -159,9 +290,9 @@
   .ansi-yellow { color: var(--hp-mid); }
   .ansi-blue { color: #8fb0ff; }
   .ansi-magenta { color: var(--accent); }
-  .ansi-cyan { color: #7ad9e0; }
+  .ansi-cyan { color: var(--undermountain); }
   .ansi-white { color: #f2f0f7; }
-  .ansi-dim-magenta { color: #9a7fc4; opacity: .8; }
+  .ansi-dim-magenta { color: var(--spider-dim); opacity: .9; }
 
   .input-row { display: flex; gap: 8px; margin: 8px 0 4px; }
   .input-row input { flex: 1; }
@@ -174,7 +305,8 @@
     background: var(--hostile);
     color: #2a0d0d;
     border: none;
-    border-radius: 4px;
+    border-radius: 3px;
+    box-shadow: none;
     cursor: pointer;
   }
   .mini-btn:hover { filter: brightness(1.12); }
@@ -187,18 +319,26 @@
   .merchant-block {
     margin-bottom: 12px;
     padding: 8px 10px;
-    background: var(--panel);
+    background: var(--stone-2);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 3px;
   }
-  .merchant-name { font-weight: 600; font-size: 13px; margin-bottom: 6px; }
-  .merchant-block .entity { background: var(--bg); }
+  .merchant-name {
+    font-family: 'Cinzel', Georgia, serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: .03em;
+    color: var(--ember);
+    margin-bottom: 6px;
+  }
+  .merchant-block .entity { background: var(--void); }
 
   .link-btn {
     background: transparent;
     color: var(--dim);
     font-weight: 400;
     text-decoration: underline;
+    box-shadow: none;
     padding: 4px 2px;
   }
   #spellSlots { font-size: 12px; color: var(--dim); margin-bottom: 6px; }
@@ -206,9 +346,9 @@
   details { margin-top: 28px; }
   summary { cursor: pointer; color: var(--dim); font-size: 12px; }
   pre {
-    background: var(--panel);
+    background: var(--stone-2);
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: 3px;
     padding: 12px;
     font-size: 11px;
     overflow-x: auto;
@@ -218,8 +358,14 @@
 </head>
 <body>
 
+<header id="gameBanner">
+  <h1>City of the Spider Queen</h1>
+  <p>Ruins of Undermountain &middot; a Forgotten Realms MUD</p>
+</header>
+
+<div class="layout">
 <div id="sidebar">
-  <h1>Room State Feed</h1>
+  <h1>Connection</h1>
 
   <label for="wsUrl">Server</label>
   <input id="wsUrl" value="ws://127.0.0.1:4001/ws">
@@ -318,6 +464,7 @@
       <pre id="rawJson"></pre>
     </details>
   </div>
+</div>
 </div>
 
 <script>
