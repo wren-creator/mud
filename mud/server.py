@@ -3,14 +3,19 @@ import logging
 import time
 from typing import Dict, Optional
 
+from aiohttp import web
+
 log = logging.getLogger(__name__)
 
 
 class MUDServer:
-    def __init__(self, host: str = "0.0.0.0", port: int = 4000):
+    def __init__(self, host: str = "0.0.0.0", port: int = 4000, ws_port: int = 4001):
         self.host = host
         self.port = port
+        self.ws_port = ws_port
         self.sessions: Dict[str, "ClientSession"] = {}  # name -> session
+        self.ws_clients: Dict[str, web.WebSocketResponse] = {}  # player name -> ws
+        self.state_seq = 0
         self.world = None
 
     async def start(self):
@@ -25,6 +30,14 @@ class MUDServer:
             self._handle_connection, self.host, self.port
         )
         log.info(f"MUD server listening on {self.host}:{self.port}")
+
+        ws_app = web.Application()
+        ws_app.router.add_get("/ws", self._handle_ws)
+        ws_runner = web.AppRunner(ws_app)
+        await ws_runner.setup()
+        ws_site = web.TCPSite(ws_runner, self.host, self.ws_port)
+        await ws_site.start()
+        log.info(f"WebSocket state feed listening on {self.host}:{self.ws_port}/ws")
 
         async with server:
             asyncio.create_task(self._respawn_loop())
@@ -113,3 +126,56 @@ class MUDServer:
                 continue
             if session.player and session.player.current_room_id == room_id:
                 await session.writeln(message)
+        await self.push_room_state(room_id)
+
+    # ─── WebSocket state feed (3D/web client POC) ─────────────────────────────
+
+    async def _handle_ws(self, request: "web.Request") -> web.WebSocketResponse:
+        import json
+
+        ws = web.WebSocketResponse()
+        await ws.prepare(request)
+
+        identified_name = None
+        async for msg in ws:
+            if msg.type != web.WSMsgType.TEXT:
+                continue
+            try:
+                data = json.loads(msg.data)
+            except ValueError:
+                continue
+
+            if data.get("type") == "identify":
+                # Piggybacks on an existing telnet-authenticated session rather
+                # than implementing a separate login over WebSocket.
+                candidate = self.sessions.get(str(data.get("name", "")).capitalize())
+                if not candidate or not candidate.player:
+                    await ws.send_json({"type": "error", "message": "no such logged-in player"})
+                    continue
+                identified_name = candidate.player.name
+                self.ws_clients[identified_name] = ws
+                await self._send_room_state(ws, candidate.player.current_room_id)
+
+        if identified_name and self.ws_clients.get(identified_name) is ws:
+            del self.ws_clients[identified_name]
+        return ws
+
+    async def _send_room_state(self, ws: web.WebSocketResponse, room_id: str):
+        room = self.world.get_room(room_id) if self.world else None
+        if not room:
+            return
+        self.state_seq += 1
+        await ws.send_json(room.to_state_dict(self.world, self.sessions, self.state_seq))
+
+    async def push_room_state(self, room_id: str):
+        if not self.ws_clients or not self.world:
+            return
+        room = self.world.get_room(room_id)
+        if not room:
+            return
+        self.state_seq += 1
+        payload = room.to_state_dict(self.world, self.sessions, self.state_seq)
+        for name, ws in list(self.ws_clients.items()):
+            session = self.sessions.get(name)
+            if session and session.player and session.player.current_room_id == room_id:
+                await ws.send_json(payload)
