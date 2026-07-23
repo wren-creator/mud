@@ -110,6 +110,39 @@
 
   .layout { display: flex; flex: 1; min-height: 0; justify-content: center; }
 
+  /* ── Side art — flanks the centered layout, fills whatever gutter is left
+     over on wide screens. Sits behind everything (negative z-index), each
+     div spans half the viewport so it's only ever visible in the gap the
+     opaque panels don't already cover, no measuring/JS needed to "resize"
+     it, background-size:cover does that automatically. */
+  .side-art {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    width: 50vw;
+    background-image: url('assets/dungeon-corridor.jpg');
+    background-repeat: no-repeat;
+    background-size: cover;
+    filter: brightness(.55) saturate(.6) sepia(.1);
+    z-index: -1;
+    pointer-events: none;
+  }
+  .side-art-left {
+    left: 0;
+    background-position: left center;
+    -webkit-mask-image: linear-gradient(to right, black 55%, transparent 100%);
+            mask-image: linear-gradient(to right, black 55%, transparent 100%);
+  }
+  .side-art-right {
+    right: 0;
+    background-position: right center;
+    -webkit-mask-image: linear-gradient(to left, black 55%, transparent 100%);
+            mask-image: linear-gradient(to left, black 55%, transparent 100%);
+  }
+  @media (max-width: 1000px) {
+    .side-art { display: none; }
+  }
+
   #sidebar {
     width: 280px;
     flex-shrink: 0;
@@ -422,6 +455,9 @@
 </style>
 </head>
 <body>
+
+<div class="side-art side-art-left" aria-hidden="true"></div>
+<div class="side-art side-art-right" aria-hidden="true"></div>
 
 <header id="gameBanner">
   <h1>City of the Spider Queen</h1>
