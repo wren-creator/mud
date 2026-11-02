@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+from pathlib import Path
 from typing import Dict, Optional
 
 from aiohttp import web
@@ -92,6 +93,10 @@ class MUDServer:
 
         ws_app = web.Application()
         ws_app.router.add_get("/ws", self._handle_ws)
+        # Serve the web client from the same port so http://host:4001 just works.
+        web_dir = Path(__file__).parent / "web"
+        ws_app.router.add_get("/", lambda _r: web.FileResponse(web_dir / "index.html"))
+        ws_app.router.add_static("/assets", web_dir / "assets")
         ws_runner = web.AppRunner(ws_app)
         await ws_runner.setup()
         ws_site = web.TCPSite(ws_runner, self.host, self.ws_port)
