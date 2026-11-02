@@ -35,7 +35,7 @@ if [ ! -f venv/bin/activate ]; then
     PY="${PYTHON:-}"
     if [ -z "$PY" ]; then
         for cand in python3.14 python3.13 python3.12 python3.11 python3.10 \
-                    /opt/homebrew/bin/python3 /usr/local/bin/python3 python3; do
+                    /opt/homebrew/bin/python3 /usr/local/bin/python3 python3 python; do
             if command -v "$cand" >/dev/null 2>&1 &&
                "$cand" -c 'import sys; sys.exit(sys.version_info < (3, 10))' 2>/dev/null; then
                 PY="$cand"
