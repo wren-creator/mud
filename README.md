@@ -36,6 +36,8 @@ cd mud
 ./stop.sh    # stops it cleanly
 ```
 
+On first run, `start.sh` creates `mud/venv/` and installs `requirements.txt` for you.
+
 Or run it directly in the foreground with `python main.py` from `mud/`.
 
 The telnet server listens on port 4000; the WebSocket state feed for the web client listens on port 4001.
