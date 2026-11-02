@@ -30,11 +30,23 @@ cd "$SCRIPT_DIR"
 # venv/ is gitignored, so build it on a fresh checkout. Also re-install when
 # the venv exists but is missing packages (e.g. an earlier install failed).
 if [ ! -f venv/bin/activate ]; then
-    PY="${PYTHON:-python3}"
-    if ! "$PY" -c 'import sys; sys.exit(sys.version_info < (3, 10))' 2>/dev/null; then
-        echo "Error: $PY is $("$PY" --version 2>&1); the MUD needs Python 3.10 or newer."
-        echo "On macOS: brew install python, then run: PYTHON=python3.13 ./start.sh"
-        echo "(The python3 that ships with macOS/Xcode tools is 3.9 and is too old.)"
+    # PYTHON=... wins. Otherwise take the newest Python 3.10+ we can find,
+    # since on macOS plain python3 is often Apple's 3.9 ahead of Homebrew's.
+    PY="${PYTHON:-}"
+    if [ -z "$PY" ]; then
+        for cand in python3.14 python3.13 python3.12 python3.11 python3.10 \
+                    /opt/homebrew/bin/python3 /usr/local/bin/python3 python3 python; do
+            if command -v "$cand" >/dev/null 2>&1 &&
+               "$cand" -c 'import sys; sys.exit(sys.version_info < (3, 10))' 2>/dev/null; then
+                PY="$cand"
+                break
+            fi
+        done
+    fi
+    if [ -z "$PY" ] || ! "$PY" -c 'import sys; sys.exit(sys.version_info < (3, 10))' 2>/dev/null; then
+        echo "Error: no Python 3.10 or newer found (python3 is $(python3 --version 2>&1))."
+        echo "On macOS: brew install python, then run ./start.sh again."
+        echo "To use a specific interpreter: PYTHON=/path/to/python3 ./start.sh"
         exit 1
     fi
     echo "No virtualenv found. Creating venv/ with $("$PY" --version)..."
