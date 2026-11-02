@@ -20,7 +20,7 @@ Playable two ways: any telnet client, or a themed web client with no telnet requ
 
 ## Requirements
 
-- Python 3.10+
+- Python 3.10+ (on macOS the built-in `python3` is 3.9, too old: `brew install python`, then `PYTHON=python3.13 ./start.sh`)
 - [Ollama](https://ollama.com) running locally with the `llama3` model pulled (`ollama pull llama3`)
 
 ```
