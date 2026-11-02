@@ -26,6 +26,14 @@ if [ -n "$EXISTING" ]; then
 fi
 
 cd "$SCRIPT_DIR"
+
+# First run on a fresh checkout: venv/ is gitignored, so build it here.
+if [ ! -f venv/bin/activate ]; then
+    echo "No virtualenv found. Creating venv/ and installing requirements..."
+    python3 -m venv venv
+    venv/bin/pip install --quiet -r requirements.txt
+fi
+
 source venv/bin/activate
 
 echo "Starting MUD server..."
