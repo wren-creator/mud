@@ -30,8 +30,15 @@ cd "$SCRIPT_DIR"
 # venv/ is gitignored, so build it on a fresh checkout. Also re-install when
 # the venv exists but is missing packages (e.g. an earlier install failed).
 if [ ! -f venv/bin/activate ]; then
-    echo "No virtualenv found. Creating venv/..."
-    python3 -m venv venv
+    PY="${PYTHON:-python3}"
+    if ! "$PY" -c 'import sys; sys.exit(sys.version_info < (3, 10))' 2>/dev/null; then
+        echo "Error: $PY is $("$PY" --version 2>&1); the MUD needs Python 3.10 or newer."
+        echo "On macOS: brew install python, then run: PYTHON=python3.13 ./start.sh"
+        echo "(The python3 that ships with macOS/Xcode tools is 3.9 and is too old.)"
+        exit 1
+    fi
+    echo "No virtualenv found. Creating venv/ with $("$PY" --version)..."
+    "$PY" -m venv venv
 fi
 if ! venv/bin/python -c "import aiohttp, yaml" 2>/dev/null; then
     echo "Installing requirements into venv/..."
