@@ -37,8 +37,8 @@ Or run it directly in the foreground:
 python main.py
 ```
 
-The telnet server listens on port 4000; the WebSocket state feed for the web
-client listens on port 4001.
+The telnet server listens on port 4000. Port 4001 serves the web client itself
+(open `http://localhost:4001`) plus its WebSocket state feed at `/ws`.
 
 ## Connecting
 

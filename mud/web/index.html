@@ -589,6 +589,10 @@
 
 <script>
   const wsUrlInput = document.getElementById('wsUrl');
+  // When served over http(s) by the MUD server itself, default to that same host.
+  if (location.protocol.startsWith('http')) {
+    wsUrlInput.value = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws';
+  }
   const nameInput = document.getElementById('playerName');
   const statusEl = document.getElementById('status');
   const emptyEl = document.getElementById('empty');
