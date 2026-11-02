@@ -27,11 +27,15 @@ fi
 
 cd "$SCRIPT_DIR"
 
-# First run on a fresh checkout: venv/ is gitignored, so build it here.
+# venv/ is gitignored, so build it on a fresh checkout. Also re-install when
+# the venv exists but is missing packages (e.g. an earlier install failed).
 if [ ! -f venv/bin/activate ]; then
-    echo "No virtualenv found. Creating venv/ and installing requirements..."
+    echo "No virtualenv found. Creating venv/..."
     python3 -m venv venv
-    venv/bin/pip install --quiet -r requirements.txt
+fi
+if ! venv/bin/python -c "import aiohttp, yaml" 2>/dev/null; then
+    echo "Installing requirements into venv/..."
+    venv/bin/python -m pip install -r requirements.txt
 fi
 
 source venv/bin/activate
